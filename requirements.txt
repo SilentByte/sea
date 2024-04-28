@@ -1,7 +1,7 @@
 databricks-vectorsearch==0.22
-langchain==0.1.5
-llama-index==0.9.3
+langchain==0.1.12
+llama-index==0.10.16
 mlflow==2.10.1
 pydantic==1.10.9
-transformers==4.30.2
+transformers==4.36.0
 unstructured[all-docs]==0.10.30
