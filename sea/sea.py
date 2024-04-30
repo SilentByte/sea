@@ -85,6 +85,7 @@ class SeaRuntime:
                 'length AS file_size',
                 'modificationTime AS file_timestamp',
                 'content',
+                'created_on',
             )
 
             .writeStream
