@@ -69,6 +69,9 @@ class SeaRuntime:
             ) TBLPROPERTIES (delta.enableChangeDataFeed = true)
         ''')
 
+        # Ensure the properties are set correctly in case the table already existed.
+        self.spark_query(r'ALTER TABLE document_vectors SET TBLPROPERTIES (delta.enableChangeDataFeed = true)')
+
     def ingest_documents(self) -> None:
         (
             self.spark
