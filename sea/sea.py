@@ -10,6 +10,7 @@ from textwrap import dedent
 import pyspark.sql.functions as F
 
 from sea.config import SeaConfig
+from sea.udf import extract_document_chunks, compute_embeddings
 
 
 class SeaRuntime:
@@ -92,5 +93,23 @@ class SeaRuntime:
             .trigger(availableNow=True)
             .option('checkpointLocation', self.config.checkpoints_dir('documents'))
             .table('documents')
+            .awaitTermination()
+        )
+
+    def compute_document_vectors(self) -> None:
+        (
+            self.spark
+            .readStream
+            .table('documents')
+            .withColumn('processed', F.explode(extract_document_chunks('content')))
+            .withColumn('content', F.col('processed.text'))
+            .withColumn('start_page_no', F.col('processed.start_page_no'))
+            .withColumn('end_page_no', F.col('processed.end_page_no'))
+            .withColumn('embeddings', compute_embeddings('content'))
+            .withColumn('created_on', F.now())
+            .selectExpr('file_name', 'file_hash', 'start_page_no', 'end_page_no', 'content', 'embeddings', 'created_on')
+            .writeStream.trigger(availableNow=True)
+            .option('checkpointLocation', self.config.checkpoints_dir('document_vectors'))
+            .table('document_vectors')
             .awaitTermination()
         )
