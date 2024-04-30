@@ -23,6 +23,8 @@ class SeaRuntime:
         return self.spark.sql(query, args, **kwargs)
 
     def initialize_spark(self) -> None:
+        self.spark.conf.set("spark.sql.execution.arrow.maxRecordsPerBatch", self.config.spark_max_records_per_batch)
+
         current_catalog = self.spark_query('SELECT current_catalog() AS name').collect()[0]['name']
         available_catalogs = [
             row['catalog']
@@ -61,7 +63,7 @@ class SeaRuntime:
                 start_page_no       INT,
                 end_page_no         INT,
                 content             STRING,
-                embedding           ARRAY<FLOAT>,
+                embeddings          ARRAY<FLOAT>,
                 created_on          TIMESTAMP
             ) TBLPROPERTIES (delta.enableChangeDataFeed = true)
         ''')
