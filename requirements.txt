@@ -1,3 +1,4 @@
+databricks-sdk==0.26.0
 databricks-vectorsearch==0.22
 langchain==0.1.12
 llama-index==0.10.16
