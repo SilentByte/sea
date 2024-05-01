@@ -52,7 +52,8 @@ class SeaVectorSearchIndex:
             status = self.query_status()
 
             if 'ONLINE' in status:
-                return status
+                print(f'Vector Search Index {self.index_name} @ {self.endpoint_name} is {status}')
+                break
 
             if report_progress:
                 print(f'Waiting for Vector Search Index {self.index_name} @ {self.endpoint_name}: {status}')
