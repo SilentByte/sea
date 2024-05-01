@@ -9,8 +9,78 @@ from textwrap import dedent
 
 import pyspark.sql.functions as F
 
+from databricks.vector_search.client import VectorSearchClient
+
 from sea.config import SeaConfig
 from sea.udf import extract_document_chunks, compute_embeddings
+from sea import utils
+
+
+class SeaVectorSearchIndex:
+    client: VectorSearchClient
+    endpoint_name: str
+    index_name: str
+
+    def __init__(self, endpoint_name: str, index_name: str):
+        self.client = VectorSearchClient()
+        self.endpoint_name = endpoint_name
+        self.index_name = index_name
+
+    def _index(self):
+        return self.client.get_index(self.endpoint_name, self.index_name)
+
+    def query_status(self) -> str:
+        try:
+            description = self._index().describe()
+        except Exception as e:
+            # There seems to be no other way to get this information in a structured manner from the Databricks SDK...
+            if 'RESOURCE_DOES_NOT_EXIST' in str(e):
+                return 'ABSENT'
+
+            raise e
+
+        return utils.dict_item_from_path(description, 'status.detailed_state')
+
+    def query_exists(self) -> bool:
+        return self.query_status() != 'ABSENT'
+
+    def await_deployment(self, timeout: int | None = None, report_progress: bool = True) -> str:
+        status = 'UNKNOWN'
+        start_time = utils.epoch()
+
+        while timeout is None or start_time + timeout < utils.epoch():
+            status = self.query_status()
+
+            if 'ONLINE' in status:
+                return status
+
+            if report_progress:
+                print(f'Waiting for Vector Search Index {self.index_name} @ {self.endpoint_name}: {status}')
+
+            utils.sleep(10)
+
+        return status
+
+    def create(
+            self,
+            source_table_name: str,
+            pipeline_type: str,
+            primary_key: str,
+            embedding_vector_column: str,
+            embedding_dimension: int,
+    ) -> None:
+        self.client.create_delta_sync_index(
+            endpoint_name=self.endpoint_name,
+            index_name=self.index_name,
+            source_table_name=source_table_name,
+            pipeline_type=pipeline_type,
+            primary_key=primary_key,
+            embedding_vector_column=embedding_vector_column,
+            embedding_dimension=embedding_dimension,
+        )
+
+    def sync(self) -> None:
+        self._index().sync()
 
 
 class SeaRuntime:
@@ -116,3 +186,23 @@ class SeaRuntime:
             .table('document_vectors')
             .awaitTermination()
         )
+
+    def create_document_vectors_index(self) -> None:
+        index = SeaVectorSearchIndex(
+            endpoint_name=self.config.vector_search_endpoint,
+            index_name=f'{self.config.catalog}.{self.config.schema}.document_vectors_index'
+        )
+
+        if index.query_exists():
+            index.await_deployment()
+            index.sync()
+        else:
+            index.create(
+                source_table_name=f'{self.config.catalog}.{self.config.schema}.document_vectors',
+                pipeline_type='TRIGGERED',
+                primary_key='id',
+                embedding_vector_column='embeddings',
+                embedding_dimension=1024,
+            )
+
+            index.await_deployment()
