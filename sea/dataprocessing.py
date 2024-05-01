@@ -6,14 +6,13 @@
 
 import re
 
-from io import BytesIO
 from dataclasses import dataclass
 from typing import Iterator
 
+import fitz as pymupdf
 from llama_index.core.schema import Document
 from llama_index.core.utils import set_global_tokenizer
 from llama_index.core.node_parser import SentenceSplitter
-from unstructured.partition.auto import partition
 from transformers import AutoTokenizer
 
 set_global_tokenizer(AutoTokenizer.from_pretrained("hf-internal-testing/llama-tokenizer"))
@@ -56,27 +55,16 @@ def normalize_text(text: str) -> str | None:
 
 
 def extract_document_pages(document_data: bytes) -> Iterator[LocalizedText]:
-    elements = partition(
-        file=BytesIO(document_data),
-        include_page_breaks=True,
-    )
+    with pymupdf.open(stream=document_data) as document:
+        for page_no, page in enumerate(document):
+            page_text = ''
 
-    page_counter = 0
-    page_text = ''
+            for paragraph in page.get_text().split('\n'):
+                if normalized_text := normalize_text(paragraph):
+                    page_text += normalized_text + ' '
 
-    for e in elements:
-        if e.category == 'PageBreak':
             if page_text:
-                yield LocalizedText(page_text, page_counter, page_counter)
-                page_text = ''
-
-            page_counter += 1
-        else:
-            if normalized_text := normalize_text(e.text):
-                page_text += normalized_text + '\n'
-
-    if page_text:
-        yield LocalizedText(page_text, page_counter, page_counter)
+                yield LocalizedText(page_text, page_no, page_no)
 
 
 def find_page_no_by_char_count(page_no_char_index: list[int], char_count: int) -> int:
