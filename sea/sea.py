@@ -79,21 +79,25 @@ class SeaVectorSearchIndex:
             embedding_dimension=embedding_dimension,
         )
 
+    def drop(self) -> None:
+        self.client.delete_index(self.endpoint_name, self.index_name)
+
     def sync(self) -> None:
         self._index().sync()
 
 
 class SeaRuntime:
-    def __init__(self, config: SeaConfig, spark):
+    def __init__(self, config: SeaConfig, spark, dbutils):
         self.config = config
         self.spark = spark
+        self.dbutils = dbutils
 
     def spark_query(self, query: str, args: dict[str, Any] | list | None = None, **kwargs: Any) -> Any:
         query = dedent(query).strip()
         print(query)
         return self.spark.sql(query, args, **kwargs)
 
-    def initialize_spark(self) -> None:
+    def initialize_runtime(self) -> None:
         self.spark.conf.set("spark.sql.execution.arrow.maxRecordsPerBatch", self.config.spark_max_records_per_batch)
 
         current_catalog = self.spark_query('SELECT current_catalog() AS name').collect()[0]['name']
@@ -141,6 +145,21 @@ class SeaRuntime:
 
         # Ensure the properties are set correctly in case the table already existed.
         self.spark_query(r'ALTER TABLE document_vectors SET TBLPROPERTIES (delta.enableChangeDataFeed = true)')
+
+    def destroy_runtime(self) -> None:
+        index = SeaVectorSearchIndex(
+            endpoint_name=self.config.vector_search_endpoint,
+            index_name=f'{self.config.catalog}.{self.config.schema}.document_vectors_index'
+        )
+
+        if index.query_exists():
+            index.drop()
+
+        self.spark_query(r'DROP TABLE IF EXISTS document_vectors')
+        self.spark_query(r'DROP TABLE IF EXISTS documents')
+
+        self.dbutils.fs.rm(self.config.checkpoints_dir("documents"), True)
+        self.dbutils.fs.rm(self.config.checkpoints_dir("document_vectors"), True)
 
     def ingest_documents(self) -> None:
         (
