@@ -33,7 +33,6 @@ def normalize_text(text: str) -> str | None:
 
     for p in [
         # General garbage.
-        r'^\s*$',
         r'^(\d+\s*)*$',
         r'^.$',
 
@@ -46,12 +45,18 @@ def normalize_text(text: str) -> str | None:
         r'^Issued by:?.*$',
         r'^(Page:\s*)?\d+\s+of\s+\d+.*$',
         r'^.*Table of Contents.*$',
-        r'^.*\.{4,}.*$',
+        r'^.*(\.\s*){4,}.*$',
     ]:
         if re.search(p, text, re.IGNORECASE):
             return None
 
-    return text
+    for p in [
+        r'This\s*document\s*is\s*controlled\s*while\s*it\s*remains[^.]*?\.',
+        r'Once\s*this\s*no\s*longer\s*applies[^.]*\.',
+    ]:
+        text = re.sub(p, '', text)
+
+    return text.strip() or None
 
 
 def extract_document_pages(document_data: bytes) -> Iterator[LocalizedText]:
