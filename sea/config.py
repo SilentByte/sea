@@ -13,7 +13,7 @@ class SeaConfig:
     schema: str = 'sea'
     volume: str = 'sea_data'
     vector_search_endpoint: str = 'sea_vector_search'
-    spark_max_records_per_batch: int = 20
+    spark_max_records_per_batch: int = 16
 
     def volume_dir(self, path: str) -> str:
         return f'dbfs:/Volumes/{self.catalog}/{self.schema}/{self.volume}/{path}'
