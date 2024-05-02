@@ -115,9 +115,9 @@ class SeaInferenceClient:
 
     def _prompt_template(self) -> PromptTemplate:
         return PromptTemplate(
-            input_variables=['question', 'search_results'],
+            input_variables=['history', 'question', 'search_results'],
             template=utils.dedent('''
-                You are an assistant to an engineer and about to answer their question.        
+                You are an assistant to a qualified engineer and about to answer their question.
 
                 Here is the previous conversation history between you and the engineer:
                 
