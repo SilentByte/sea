@@ -150,7 +150,7 @@ class SeaRuntime:
     def destroy_runtime(self) -> None:
         index = SeaVectorSearchIndex(
             endpoint_name=self.config.vector_search_endpoint,
-            index_name=f'{self.config.catalog}.{self.config.schema}.document_vectors_index'
+            index_name=self.config.document_vectors_index,
         )
 
         if index.query_exists():
@@ -210,7 +210,7 @@ class SeaRuntime:
     def create_document_vectors_index(self) -> None:
         index = SeaVectorSearchIndex(
             endpoint_name=self.config.vector_search_endpoint,
-            index_name=f'{self.config.catalog}.{self.config.schema}.document_vectors_index'
+            index_name=self.config.document_vectors_index,
         )
 
         if index.query_exists():

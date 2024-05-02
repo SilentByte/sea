@@ -3,7 +3,9 @@
 # # Copyright (c) 2024 SilentByte <https://silentbyte.com/>
 # #
 
+import textwrap
 import time
+
 from typing import Any
 
 
@@ -24,3 +26,7 @@ def epoch() -> float:
 
 def sleep(seconds: float) -> None:
     time.sleep(seconds)
+
+
+def dedent(text: str) -> str:
+    return textwrap.dedent(text).strip('\n')
