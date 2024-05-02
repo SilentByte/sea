@@ -27,11 +27,46 @@ class InferenceSource:
     start_page_no: int
     end_page_no: int
 
+    def to_dict(self) -> dict:
+        return {
+            'text': self.text,
+            'file_name': self.file_name,
+            'file_hash': self.file_hash,
+            'start_page_no': self.start_page_no,
+            'end_page_no': self.end_page_no,
+        }
+
+    def to_markdown(self) -> str:
+        if self.start_page_no == self.end_page_no:
+            return f'{self.file_name}, p. {self.start_page_no}'
+        else:
+            return f'{self.file_name}, pp. {self.start_page_no}-{self.end_page_no}'
+
 
 @dataclass
 class InferenceResult:
     text: str
     sources: list[InferenceSource]
+
+    def to_dict(self) -> dict:
+        return {
+            'text': self.text,
+            'sources': [
+                s.to_dict()
+                for s in self.sources
+            ],
+        }
+
+    def to_markdown(self) -> str:
+        if len(self.sources) == 0:
+            return self.text
+
+        sources_list = '\n'.join(sorted([
+            f'- {s.to_markdown()}'
+            for s in self.sources
+        ]))
+
+        return f'{self.text}\nSources:\n{sources_list}'
 
 
 @dataclass
@@ -102,7 +137,7 @@ class SeaInferenceClient:
 
     @staticmethod
     def _extract_question(interaction_history: list[InferenceInteraction]) -> str:
-        return interaction_history[-1].text
+        return (interaction_history[-1].text).strip()
 
     @staticmethod
     def _concatenate_history_text(interaction_history: list[InferenceInteraction]) -> str:
@@ -111,9 +146,9 @@ class SeaInferenceClient:
 
         def format_interaction(interaction: InferenceInteraction) -> str:
             if interaction.originator == 'agent':
-                return f'You: {interaction.text}'
+                return f'You: {interaction.text.strip()}'
             else:
-                return f'Engineer: {interaction.text}'
+                return f'Engineer: {interaction.text.strip()}'
 
         return '\n\n'.join([
             format_interaction(ir)
