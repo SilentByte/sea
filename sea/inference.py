@@ -76,15 +76,35 @@ class InferenceInteraction:
 
 
 class SeaInferenceClient:
+    DEFAULT_PROMPT_TEMPLATE = r'''
+        You are an assistant to a qualified engineer and about to answer their question.
+
+        Here is the previous conversation history between you and the engineer:
+
+        {history}
+
+        Here are a few search results from aircraft manufacturing and maintenance documentations that you need to consider:
+
+        {search_results}
+
+        Based on these results, answer the following question:
+
+        {question}
+
+        Your response must be formatted using markdown.
+    '''
+
     def __init__(
             self,
             vector_search_endpoint: str,
             vector_search_index: str,
             result_count: int,
+            prompt_template_override: str | None = None
     ):
         self.vector_search_endpoint = vector_search_endpoint
         self.vector_search_index = vector_search_index
         self.result_count = max(1, min(result_count, 16))
+        self.prompt_template_override = prompt_template_override
 
         self.embedding_model = DatabricksEmbeddings(endpoint="databricks-bge-large-en")
         self.agent_model = ChatDatabricks(
@@ -116,28 +136,12 @@ class SeaInferenceClient:
     def _prompt_template(self) -> PromptTemplate:
         return PromptTemplate(
             input_variables=['history', 'question', 'search_results'],
-            template=utils.dedent('''
-                You are an assistant to a qualified engineer and about to answer their question.
-
-                Here is the previous conversation history between you and the engineer:
-                
-                {history}
-
-                Here are a few search results from aircraft manufacturing and maintenance documentations that you need to consider:
-
-                {search_results}
-
-                Based on these results, answer the following question:
-
-                {question}
-
-                Your response must be formatted using markdown.
-            '''),
+            template=utils.dedent(self.prompt_template_override or SeaInferenceClient.DEFAULT_PROMPT_TEMPLATE),
         )
 
     @staticmethod
     def _extract_question(interaction_history: list[InferenceInteraction]) -> str:
-        return (interaction_history[-1].text).strip()
+        return interaction_history[-1].text.strip()
 
     @staticmethod
     def _concatenate_history_text(interaction_history: list[InferenceInteraction]) -> str:
