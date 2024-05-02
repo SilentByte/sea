@@ -66,7 +66,7 @@ class InferenceResult:
             for s in self.sources
         ]))
 
-        return f'{self.text}\n\nSources:\n{sources_list}'
+        return f'{self.text}\n\nSources:\n\n{sources_list}'
 
 
 @dataclass
