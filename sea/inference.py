@@ -61,12 +61,12 @@ class InferenceResult:
         if len(self.sources) == 0:
             return self.text
 
-        sources_list = '\n\n'.join(sorted([
+        sources_list = '\n'.join(sorted([
             f'- {s.to_markdown()}'
             for s in self.sources
         ]))
 
-        return f'{self.text}\n\nSources:\n\n{sources_list}'
+        return f'{self.text}\n\n----------\n\n{sources_list}'
 
 
 @dataclass
