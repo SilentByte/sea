@@ -7,12 +7,17 @@
 import logging
 import hashlib
 import os.path
-
-from glob import glob
-from datetime import datetime, timedelta
+import re
 
 import pytz
+
+from glob import glob
+from pathlib import Path
+from datetime import datetime, timedelta
+from dataclasses import dataclass
+
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from sea.config import SeaConfig
@@ -108,6 +113,11 @@ def authenticate_with_token(token: str) -> UserAccount | None:
     return auth_token.user
 
 
+def extract_document_search_tags(file_name: str) -> list[str]:
+    file_name = Path(file_name).stem.lower()
+    return list(set(re.split(r'[\s\-_.]+', file_name)))
+
+
 def synchronize_documents() -> None:
     document_file_names = glob(os.path.join(settings.DOCUMENT_DIR, '**/*.pdf'), recursive=True)
 
@@ -120,8 +130,10 @@ def synchronize_documents() -> None:
             Document.objects.update_or_create(
                 file_hash=file_hash,
                 defaults={
+                    'file_name': file_name,
                     'file_creation_ts': datetime.fromtimestamp(os.path.getctime(file_name), tz=pytz.UTC),
                     'file_modification_ts': datetime.fromtimestamp(os.path.getmtime(file_name), tz=pytz.UTC),
+                    'search_tags': extract_document_search_tags(file_name),
                     'last_checked_on': timezone.now(),
                 },
                 create_defaults={
@@ -130,6 +142,7 @@ def synchronize_documents() -> None:
                     'file_size': os.path.getsize(file_name),
                     'file_creation_ts': datetime.fromtimestamp(os.path.getctime(file_name), tz=pytz.UTC),
                     'file_modification_ts': datetime.fromtimestamp(os.path.getmtime(file_name), tz=pytz.UTC),
+                    'search_tags': extract_document_search_tags(file_name),
                 }
             )
 
@@ -144,6 +157,34 @@ def get_document_path(file_hash: str) -> str | None:
         return None
 
     return document.file_name
+
+
+@dataclass
+class DocumentInfo:
+    file_name: str
+    file_hash: str
+
+    def to_dict(self) -> dict:
+        return {
+            'file_name': self.file_name,
+            'file_hash': self.file_hash,
+        }
+
+
+def search_documents(query: str) -> list[DocumentInfo]:
+    query = query.strip()
+
+    documents = Document.objects.filter(
+        Q(file_name=query)
+        | Q(file_hash=query.lower())
+        | Q(search_tags__overlap=extract_document_search_tags(query))
+        | Q(file_name__icontains=query),
+    ).order_by('file_name')[:6]
+
+    return [
+        DocumentInfo(d.file_name, d.file_hash)
+        for d in documents
+    ]
 
 
 def execute_inference_query(user: UserAccount | None, inference_interactions: list[InferenceInteraction]) -> InferenceResult:

@@ -9,6 +9,8 @@ import json
 from uuid import uuid4
 
 from django.contrib.admin import ModelAdmin
+from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.indexes import  GinIndex
 from django.db import models
 from django.utils.html import format_html, escape
 
@@ -147,7 +149,7 @@ class AuthToken(models.Model):
 
 class DocumentAdmin(SeaModelAdmin):
     list_display = ['id', 'truncated_file_name', 'formatted_file_hash', 'formatted_file_size', 'file_creation_ts', 'file_modification_ts',
-                    'last_checked_on', 'last_synchronized_on', 'created_on', 'last_modified_on']
+                    'search_tags', 'last_checked_on', 'last_synchronized_on', 'created_on', 'last_modified_on']
 
     ordering = ['file_name', '-file_creation_ts']
 
@@ -175,6 +177,7 @@ class Document(models.Model):
         indexes = [
             models.Index(fields=['file_name']),
             models.Index(fields=['file_creation_ts']),
+            GinIndex(fields=['search_tags']),
         ]
 
     id = UUIDPrimaryKeyField()
@@ -189,6 +192,8 @@ class Document(models.Model):
     file_creation_ts = models.DateTimeField()
 
     file_modification_ts = models.DateTimeField()
+
+    search_tags = ArrayField(models.TextField())
 
     last_checked_on = models.DateTimeField(null=True,
                                            blank=True)

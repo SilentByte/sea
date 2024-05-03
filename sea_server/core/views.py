@@ -89,7 +89,7 @@ def authenticate(request: HttpRequest) -> HttpResponse:
 
 
 @csrf_exempt
-def document(request: HttpRequest, file_hash: str) -> HttpResponse:
+def download_document(request: HttpRequest, file_hash: str) -> HttpResponse:
     if request.method != 'GET':
         return HttpMethodNotAllowedResponse()
 
@@ -103,6 +103,22 @@ def document(request: HttpRequest, file_hash: str) -> HttpResponse:
 
     with open(file_name, 'rb') as fp:
         return HttpResponse(fp)
+
+
+@csrf_exempt
+def search_documents(request: HttpRequest) -> HttpResponse:
+    if request.method != 'GET':
+        return HttpMethodNotAllowedResponse()
+
+    if businesslogic.authenticate_with_token(extract_bearer_token(request)) is None:
+        return HttpUnauthorizedResponse()
+
+    body = json.loads(request.body)
+
+    return JsonResponse([
+        di.to_dict()
+        for di in businesslogic.search_documents(body['query'])
+    ],safe=False)
 
 
 @csrf_exempt
