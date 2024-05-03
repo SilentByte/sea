@@ -12,10 +12,12 @@ from django.http import (
     JsonResponse,
 )
 
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 
 from sea.inference import InferenceInteraction
+
+from server import settings
 
 from core import (
     status,
@@ -57,6 +59,9 @@ def extract_bearer_token(request: HttpRequest) -> str | None:
 
 @csrf_exempt
 def index(request: HttpRequest) -> HttpResponse:
+    if settings.DEBUG:
+        return redirect('http://localhost:3000')
+
     return render(request, 'index.html', status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
