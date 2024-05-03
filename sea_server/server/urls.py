@@ -10,5 +10,6 @@ from core import views
 
 urlpatterns = [
     path('records/', admin.site.urls),
+    path('api/document/<str:file_hash>', views.document),
     path('', views.index),
 ]

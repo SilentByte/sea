@@ -48,3 +48,15 @@ def synchronize_documents() -> None:
                     'file_modification_ts': datetime.fromtimestamp(os.path.getmtime(file_name), tz=pytz.UTC),
                 }
             )
+
+
+def get_document_path(file_hash: str) -> str | None:
+    document: Document = Document.objects \
+        .filter(file_hash=file_hash) \
+        .only('file_name') \
+        .first()
+
+    if document is None:
+        return None
+
+    return document.file_name
