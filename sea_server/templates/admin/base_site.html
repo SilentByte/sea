@@ -1,0 +1,72 @@
+{% extends 'admin/base.html' %}
+
+{% load static %}
+{% load i18n %}
+
+{% block dark-mode-vars %}
+{% endblock %}
+
+{% block title %}
+    Admin | S.E.A
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@latest/css/materialdesignicons.min.css"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/admin-customizations.css' %}"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/admin-additions.css' %}"/>
+{% endblock extrastyle %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <link rel="shortcut icon" href="{% static 'favicon.ico' %}"/>
+{% endblock %}
+
+{% block branding %}
+    <h1 id="site-name">
+        <a href="{% url 'admin:index' %}">
+            <img src="{% static 'images/sea_banner.svg' %}"
+                 alt="S.E.A.">
+        </a>
+    </h1>
+{% endblock %}
+
+{% block welcome-msg %}
+{% endblock %}
+
+{% block userlinks %}
+    <div id="custom-menu">
+        {% if site_url %}
+            <span>
+                <a href="{{ site_url }}">
+                    <span class="mdi mdi-rocket-launch"></span>
+                    Go to App
+                </a>
+            </span>
+        {% endif %}
+
+        {% if debug %}
+            <span class="development-mode">
+                <span class="mdi mdi-bug-check"></span>
+                Development
+            </span>
+        {% else %}
+            <span class="production-mode">
+                <span class="mdi mdi-shield-alert"></span>
+                Production
+                <span class="mdi mdi-shield-alert"></span>
+            </span>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block nav-global %}
+    <div id="custom-nav">
+        {% if user.has_usable_password %}
+            <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a> /
+        {% endif %}
+        <a href="{% url 'admin:logout' %}">{% trans 'Log out' %}
+            (<strong>{% firstof user.get_short_name user.get_username %}</strong>)
+        </a>
+    </div>
+{% endblock %}

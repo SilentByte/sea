@@ -1,0 +1,209 @@
+/*
+ * SEA / SMART ENGINEERING ASSISTANT
+ * Copyright (c) 2024 SilentByte <https://silentbyte.com/>
+ */
+
+* {
+    border-radius: 0 !important;
+}
+
+body {
+    font-family: Ubuntu, Roboto, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    text-transform: uppercase;
+}
+
+label {
+    text-transform: uppercase;
+}
+
+*::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+*::-webkit-scrollbar-track {
+    background-color: #f7f7f7;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: #979797;
+    border-radius: 999px;
+    border: 2px solid #f7f7f7;
+}
+
+#header, .module caption {
+    background-color: #28487b;
+    color: #fff;
+}
+
+.module h2, .selector .selector-chosen h2 {
+    background-color: #6db26f;
+    color: #fff;
+}
+
+#branding h1, #branding h1 a:link, #branding h1 a:visited {
+    color: #fff;
+    margin-top: -4px;
+}
+
+#nav-sidebar {
+    left: 0 !important;
+    flex: 0 0 300px;
+    border-top: 0;
+}
+
+#nav-sidebar caption, #nav-sidebar td, #nav-sidebar th {
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#nav-sidebar .current-model {
+    background: #e4e9f1;
+}
+
+#nav-sidebar .current-app .section:link,
+#nav-sidebar .current-app .section:visited {
+    color: inherit;
+    font-weight: normal;
+}
+
+#nav-sidebar .module {
+    margin-bottom: 0;
+}
+
+#nav-filter {
+    width: 100%;
+    height: 30px;
+    border: none;
+    margin: 0;
+}
+
+#nav-filter:focus {
+    border: none;
+    outline: none;
+}
+
+#content {
+    padding: 15px 15px;
+}
+
+#toggle-nav-sidebar {
+    display: none;
+}
+
+#site-name {
+    font-size: 36px !important;
+}
+
+#site-name img {
+    height: 36px;
+}
+
+#user-tools a {
+    font-weight: bold;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+#user-tools a:hover, #user-tools a:focus {
+    text-decoration: none;
+    color: #ffffff !important;
+    border-bottom: 1px solid #ffffff;
+}
+
+#changelist .actions .button {
+    padding: 0 12px !important;
+    line-height: 0 !important;
+}
+
+#result_list th.field-id {
+    font-family: Iosevka, "Ubuntu Mono", monospace;
+    font-size: 0.9em;
+}
+
+a:link, a:visited {
+    color: #28487b;
+}
+
+div.breadcrumbs {
+    background-color: #3e5f95;
+    color: #fff;
+}
+
+div.breadcrumbs a {
+    font-weight: bold;
+}
+
+div.breadcrumbs a:focus,
+div.breadcrumbs a:hover {
+    color: inherit;
+    border-bottom: 1px solid #fff;
+}
+
+.module th[scope=row] {
+    text-transform: capitalize;
+}
+
+.submit-row a.deletelink {
+    text-transform: uppercase;
+}
+
+.button,
+input[type=submit],
+input[type=button],
+.submit-row input,
+a.button {
+    background-color: #28487b;
+    text-transform: uppercase;
+}
+
+.button:active,
+input[type=submit]:active,
+input[type=button]:active,
+.button:focus,
+input[type=submit]:focus,
+input[type=button]:focus,
+.button:hover,
+input[type=submit]:hover,
+input[type=button]:hover {
+    background-color: #1a3a6c;
+}
+
+.button.default,
+input[type=submit].default,
+.submit-row input.default {
+    background-color: #1a3a6c;
+}
+
+.button.default:active,
+input[type=submit].default:active,
+.button.default:focus,
+input[type=submit].default:focus,
+.button.default:hover,
+input[type=submit].default:hover {
+    background-color: #1a3a6c;
+}
+
+a.addlink, a.changelink {
+    text-transform: uppercase;
+}
+
+.object-tools a:focus,
+.object-tools a:hover {
+    background-color: #3e5f95;
+}
+
+.django-ace-widget, .jsoneditor {
+    border: 1px solid #28487b !important;
+}
+
+.jsoneditor-menu {
+    background-color: #28487b !important;
+    border-bottom: 1px solid #28487b !important;;
+}
+
+button.theme-toggle {
+    display: none;
+}
