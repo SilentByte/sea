@@ -4,12 +4,13 @@
 # #
 
 import os
+
 from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 DB_HOST = os.environ['DB_HOST']
 DB_PORT = int(os.environ['DB_PORT'])
@@ -50,7 +51,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [
-            os.path.join(BASE_DIR, 'templates'),
+            os.path.join(BASE_DIR, 'sea_server/templates'),
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -109,7 +110,7 @@ TIME_FORMAT = 'H:i:s'
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
+    os.path.join(BASE_DIR, 'sea_server/static'),
 )
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

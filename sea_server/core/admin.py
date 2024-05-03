@@ -9,13 +9,7 @@ from django.contrib.auth import (
     models as auth_models
 )
 
-import sea_server
-
-# from sea_server.core import models
-#
 from core import models
-
-
 
 site = AdminSite(name='admin')
 
