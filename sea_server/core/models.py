@@ -67,8 +67,6 @@ class UserAccountAdmin(SeaModelAdmin):
     list_display = ['id', 'email', 'display_name', 'verified_on',
                     'is_active', 'created_on', 'last_modified_on']
 
-    readonly_fields = ['hashed_credentials']
-
     ordering = ['email']
 
     search_fields = ['id', 'email', 'display_name']

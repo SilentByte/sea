@@ -32,14 +32,42 @@ class HttpNotFoundResponse(HttpResponse):
         super().__init__(status=status.HTTP_404_NOT_FOUND)
 
 
-class HttpUnsupportedMediaType(HttpResponse):
+class HttpUnsupportedMediaTypeResponse(HttpResponse):
     def __init__(self):
         super().__init__(status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+
+class HttpUnauthorizedResponse(HttpResponse):
+    def __init__(self):
+        super().__init__(status=status.HTTP_401_UNAUTHORIZED)
 
 
 @csrf_exempt
 def index(request: HttpRequest) -> HttpResponse:
     return render(request, 'index.html', status=status.HTTP_503_SERVICE_UNAVAILABLE)
+
+
+@csrf_exempt
+def authenticate(request: HttpRequest) -> HttpResponse:
+    if request.method != 'POST':
+        return HttpMethodNotAllowedResponse()
+
+    if request.content_type != 'application/json':
+        return HttpUnsupportedMediaTypeResponse()
+
+    body = json.loads(request.body)
+    email = body['email']
+    credentials = body['credentials']
+
+    authentication = businesslogic.authenticate_with_credentials(email, credentials)
+
+    if authentication is None:
+        return HttpUnauthorizedResponse()
+
+    return JsonResponse({
+        'display_name': authentication[0].display_name,
+        'token': authentication[1].token,
+    })
 
 
 @csrf_exempt
@@ -62,7 +90,7 @@ def inference_query(request: HttpRequest) -> HttpResponse:
         return HttpMethodNotAllowedResponse()
 
     if request.content_type != 'application/json':
-        return HttpUnsupportedMediaType()
+        return HttpUnsupportedMediaTypeResponse()
 
     body = json.loads(request.body)
 
