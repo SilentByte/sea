@@ -12,10 +12,22 @@ from glob import glob
 from datetime import datetime
 
 import pytz
+from django.contrib.auth.models import User
 from django.db import transaction
 
+from sea.config import SeaConfig
+from sea.inference import (
+    SeaInferenceClient,
+    InferenceInteraction,
+    InferenceResult,
+)
+
 from server import settings
-from core.models import Document
+
+from core.models import (
+    Document,
+    InferenceLog,
+)
 
 log = logging.getLogger(__name__)
 
@@ -60,3 +72,22 @@ def get_document_path(file_hash: str) -> str | None:
         return None
 
     return document.file_name
+
+
+def execute_inference_query(user: User | None, inference_interactions: list[InferenceInteraction]) -> InferenceResult:
+    sea_config = SeaConfig()
+    client = SeaInferenceClient(
+        vector_search_endpoint=sea_config.vector_search_endpoint,
+        vector_search_index=sea_config.document_vectors_index,
+        result_count=4,
+    )
+
+    inference_result = client.infer_interaction(inference_interactions)
+
+    InferenceLog.objects.create(
+        user=user,
+        input=[ii.to_dict() for ii in inference_interactions],
+        output=inference_result.to_dict(),
+    )
+
+    return inference_result

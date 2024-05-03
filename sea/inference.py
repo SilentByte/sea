@@ -74,6 +74,12 @@ class InferenceInteraction:
     originator: str
     text: str
 
+    def to_dict(self) -> dict:
+        return {
+            'originator': self.originator,
+            'text': self.text,
+        }
+
 
 class SeaInferenceClient:
     DEFAULT_PROMPT_TEMPLATE = r'''
@@ -91,7 +97,7 @@ class SeaInferenceClient:
 
         {question}
 
-        Your response must be formatted using markdown.
+        Your response must exclusively be formatted using markdown.
     '''
 
     def __init__(

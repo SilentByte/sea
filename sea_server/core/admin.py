@@ -7,3 +7,4 @@ from django.contrib import admin
 from core import models
 
 admin.site.register(models.Document, models.DocumentAdmin)
+admin.site.register(models.InferenceLog, models.InferenceLogAdmin)

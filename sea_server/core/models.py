@@ -4,10 +4,12 @@
 # #
 
 import os
+import json
 
 from uuid import uuid4
 
 from django.contrib.admin import ModelAdmin
+from django.contrib.auth.models import User
 from django.db import models
 from django.utils.html import format_html, escape
 
@@ -119,3 +121,51 @@ class Document(models.Model):
 
     def __str__(self):
         return self.file_name
+
+
+class InferenceLogAdmin(SeaModelAdmin):
+    list_display = ['id', 'user', 'truncated_input', 'truncated_output', 'created_on', 'last_modified_on']
+
+    list_select_related = ['user']
+
+    ordering = ['-created_on']
+
+    search_fields = ['id', 'file_name', 'file_hash']
+
+    autocomplete_fields = ['user']
+
+    def truncated_input(self, instance) -> str:
+        return truncate_format_text(json.dumps(instance.input), 200)
+
+    truncated_input.short_description = 'Input'
+
+    def truncated_output(self, instance) -> str:
+        return truncate_format_text(json.dumps(instance.output), 200)
+
+    truncated_output.short_description = 'Output'
+
+
+class InferenceLog(models.Model):
+    class Meta:
+        db_table = 'inference_log'
+        indexes = [
+            models.Index(fields=['created_on']),
+        ]
+
+    id = UUIDPrimaryKeyField()
+
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             null=True,
+                             blank=True)
+
+    input = models.JSONField()
+
+    output = models.JSONField()
+
+    created_on = CreatedOnField()
+
+    last_modified_on = LastModifiedOnField()
+
+    def __str__(self):
+        return str(self.id)
