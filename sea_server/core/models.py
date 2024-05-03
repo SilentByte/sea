@@ -3,11 +3,15 @@
 # # Copyright (c) 2024 SilentByte <https://silentbyte.com/>
 # #
 
+import os
 
 from uuid import uuid4
 
 from django.contrib.admin import ModelAdmin
 from django.db import models
+from django.utils.html import format_html, escape
+
+from core import utils
 
 
 class UUIDPrimaryKeyField(models.UUIDField):
@@ -37,13 +41,49 @@ class SeaModelAdmin(ModelAdmin):
     actions_on_bottom = True
 
 
+def truncate_format_text(text: str | None, max_length: int = 40) -> str:
+    if text is None:
+        return ''
+
+    return format_html(
+        r'<span title="{title}">{text}</span>',
+        title=escape(text),
+        text=escape(utils.truncate_ellipsis(text, max_length)),
+    )
+
+
+def monospace_format_text(text: str | None) -> str:
+    if text is None:
+        return ''
+
+    return format_html(
+        r'<small style="font-family: monospace">{text}</small>',
+        text=escape(text),
+    )
+
+
 class DocumentAdmin(SeaModelAdmin):
-    list_display = ['id', 'file_name', 'file_hash', 'file_size', 'file_creation_ts', 'file_modification_ts',
-                    'created_on', 'last_modified_on']
+    list_display = ['id', 'truncated_file_name', 'formatted_file_hash', 'formatted_file_size', 'file_creation_ts', 'file_modification_ts',
+                    'last_checked_ts', 'last_synchronized_ts', 'created_on', 'last_modified_on']
 
     ordering = ['file_name', '-file_creation_ts']
 
     search_fields = ['id', 'file_name', 'file_hash']
+
+    def truncated_file_name(self, instance) -> str:
+        return truncate_format_text(os.path.basename(instance.file_name), 64)
+
+    truncated_file_name.short_description = 'File'
+
+    def formatted_file_hash(self, instance) -> str:
+        return monospace_format_text(instance.file_hash)
+
+    formatted_file_hash.short_description = 'SHA256'
+
+    def formatted_file_size(self, instance) -> str:
+        return f'{instance.file_size / 1024 / 1024:.2f}' + chr(0xA0) + 'MiB'
+
+    formatted_file_size.short_description = 'Size'
 
 
 class Document(models.Model):
@@ -51,7 +91,6 @@ class Document(models.Model):
         db_table = 'document'
         indexes = [
             models.Index(fields=['file_name']),
-            models.Index(fields=['file_hash']),
             models.Index(fields=['file_creation_ts']),
         ]
 
@@ -59,13 +98,20 @@ class Document(models.Model):
 
     file_name = models.CharField(max_length=1024)
 
-    file_hash = models.CharField(max_length=64)
+    file_hash = models.CharField(max_length=64,
+                                 unique=True)
 
     file_size = models.PositiveBigIntegerField()
 
     file_creation_ts = models.DateTimeField()
 
     file_modification_ts = models.DateTimeField()
+
+    last_checked_ts = models.DateTimeField(null=True,
+                                           blank=True)
+
+    last_synchronized_ts = models.DateTimeField(null=True,
+                                                blank=True)
 
     created_on = CreatedOnField()
 
