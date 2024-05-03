@@ -187,8 +187,24 @@ def search_documents(query: str) -> list[DocumentInfo]:
     ]
 
 
+def execute_inference_vector_search(query: str) -> list[DocumentInfo]:
+    sea_config = SeaConfig()
+
+    client = SeaInferenceClient(
+        vector_search_endpoint=sea_config.vector_search_endpoint,
+        vector_search_index=sea_config.document_vectors_index,
+        result_count=8,
+    )
+
+    return [
+        DocumentInfo(s.file_name, s.file_hash)
+        for s in client.query_search_index(query)
+    ]
+
+
 def execute_inference_query(user: UserAccount | None, inference_interactions: list[InferenceInteraction]) -> InferenceResult:
     sea_config = SeaConfig()
+
     client = SeaInferenceClient(
         vector_search_endpoint=sea_config.vector_search_endpoint,
         vector_search_index=sea_config.document_vectors_index,

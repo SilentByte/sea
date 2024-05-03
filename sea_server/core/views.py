@@ -118,7 +118,26 @@ def search_documents(request: HttpRequest) -> HttpResponse:
     return JsonResponse([
         di.to_dict()
         for di in businesslogic.search_documents(body['query'])
-    ],safe=False)
+    ], safe=False)
+
+
+@csrf_exempt
+def inference_search(request: HttpRequest) -> HttpResponse:
+    if request.method != 'POST':
+        return HttpMethodNotAllowedResponse()
+
+    if request.content_type != 'application/json':
+        return HttpUnsupportedMediaTypeResponse()
+
+    if businesslogic.authenticate_with_token(extract_bearer_token(request)) is None:
+        return HttpUnauthorizedResponse()
+
+    body = json.loads(request.body)
+
+    return JsonResponse([
+        di.to_dict()
+        for di in businesslogic.execute_inference_vector_search(body['query'])
+    ], safe=False)
 
 
 @csrf_exempt

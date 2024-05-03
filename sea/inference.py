@@ -191,6 +191,13 @@ class SeaInferenceClient:
                 | self._retriever()
         ).invoke(interaction_history)
 
+    def query_search_index(self, query: str) -> list[InferenceSource]:
+        search_results = self._search_index([
+            InferenceInteraction('user', query),
+        ])
+
+        return SeaInferenceClient._extract_sources(search_results)
+
     def infer_interaction(self, interaction_history: list[InferenceInteraction]) -> InferenceResult:
         if len(interaction_history) == 0:
             raise ValueError('Interaction history must not be empty')

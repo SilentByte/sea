@@ -13,6 +13,7 @@ urlpatterns = [
     path('api/authenticate', views.authenticate),
     path('api/document/<str:file_hash>', views.download_document),
     path('api/search_documents', views.search_documents),
+    path('api/inference/search', views.inference_search),
     path('api/inference/query', views.inference_query),
     path('', views.index),
 ]
