@@ -12,8 +12,8 @@ from glob import glob
 from datetime import datetime
 
 import pytz
-from django.contrib.auth.models import User
 from django.db import transaction
+from django.utils import timezone
 
 from sea.config import SeaConfig
 from sea.inference import (
@@ -27,6 +27,7 @@ from server import settings
 from core.models import (
     Document,
     InferenceLog,
+    UserAccount,
 )
 
 log = logging.getLogger(__name__)
@@ -51,6 +52,7 @@ def synchronize_documents() -> None:
                 defaults={
                     'file_creation_ts': datetime.fromtimestamp(os.path.getctime(file_name), tz=pytz.UTC),
                     'file_modification_ts': datetime.fromtimestamp(os.path.getmtime(file_name), tz=pytz.UTC),
+                    'last_checked_on': timezone.now(),
                 },
                 create_defaults={
                     'file_name': file_name,
@@ -74,7 +76,7 @@ def get_document_path(file_hash: str) -> str | None:
     return document.file_name
 
 
-def execute_inference_query(user: User | None, inference_interactions: list[InferenceInteraction]) -> InferenceResult:
+def execute_inference_query(user: UserAccount | None, inference_interactions: list[InferenceInteraction]) -> InferenceResult:
     sea_config = SeaConfig()
     client = SeaInferenceClient(
         vector_search_endpoint=sea_config.vector_search_endpoint,

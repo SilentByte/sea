@@ -9,11 +9,10 @@ import json
 from uuid import uuid4
 
 from django.contrib.admin import ModelAdmin
-from django.contrib.auth.models import User
 from django.db import models
 from django.utils.html import format_html, escape
 
-from core import utils
+from core import utils, auth
 
 
 class UUIDPrimaryKeyField(models.UUIDField):
@@ -64,9 +63,93 @@ def monospace_format_text(text: str | None) -> str:
     )
 
 
+class UserAccountAdmin(SeaModelAdmin):
+    list_display = ['id', 'email', 'display_name', 'verified_on',
+                    'is_active', 'created_on', 'last_modified_on']
+
+    readonly_fields = ['hashed_credentials']
+
+    ordering = ['email']
+
+    search_fields = ['id', 'email', 'display_name']
+
+
+class UserAccount(models.Model):
+    class Meta:
+        db_table = 'user_account'
+
+    id = UUIDPrimaryKeyField()
+
+    email = models.EmailField(unique=True)
+
+    display_name = models.CharField(max_length=30,
+                                    blank=True)
+
+    hashed_credentials = models.CharField(max_length=255)
+
+    verified_on = models.DateTimeField(null=True,
+                                       blank=True)
+
+    is_active = models.BooleanField(default=True)
+
+    created_on = CreatedOnField()
+
+    last_modified_on = LastModifiedOnField()
+
+    def __str__(self):
+        return f'{self.display_name} <{self.email}>'
+
+
+class AuthTokenAdmin(SeaModelAdmin):
+    list_display = ['id', 'user', 'device_name', 'token', 'created_on', 'expires_on', 'last_auth_on']
+
+    list_select_related = ['user']
+
+    ordering = ['user', '-created_on', 'expires_on']
+
+    search_fields = ['id', 'user__display_name', 'user__email', 'token']
+
+    autocomplete_fields = ['user']
+
+
+class AuthToken(models.Model):
+    class Meta:
+        db_table = 'auth_token'
+        indexes = [
+            models.Index(fields=['expires_on']),
+            models.Index(fields=['last_auth_on']),
+        ]
+
+    id = UUIDPrimaryKeyField()
+
+    user = models.ForeignKey(UserAccount,
+                             related_name='auth_tokens',
+                             on_delete=models.CASCADE)
+
+    token = models.CharField(max_length=255,
+                             unique=True,
+                             default=auth.generate_token)
+
+    device_name = models.CharField(max_length=255,
+                                   blank=True)
+
+    expires_on = models.DateTimeField(null=True,
+                                      blank=True)
+
+    last_auth_on = models.DateTimeField(null=True,
+                                        blank=True)
+
+    created_on = CreatedOnField()
+
+    last_modified_on = LastModifiedOnField()
+
+    def __str__(self):
+        return f'{self.user.display_name} ({self.token[0:16]}..., {self.created_on})'
+
+
 class DocumentAdmin(SeaModelAdmin):
     list_display = ['id', 'truncated_file_name', 'formatted_file_hash', 'formatted_file_size', 'file_creation_ts', 'file_modification_ts',
-                    'last_checked_ts', 'last_synchronized_ts', 'created_on', 'last_modified_on']
+                    'last_checked_on', 'last_synchronized_on', 'created_on', 'last_modified_on']
 
     ordering = ['file_name', '-file_creation_ts']
 
@@ -109,10 +192,10 @@ class Document(models.Model):
 
     file_modification_ts = models.DateTimeField()
 
-    last_checked_ts = models.DateTimeField(null=True,
+    last_checked_on = models.DateTimeField(null=True,
                                            blank=True)
 
-    last_synchronized_ts = models.DateTimeField(null=True,
+    last_synchronized_on = models.DateTimeField(null=True,
                                                 blank=True)
 
     created_on = CreatedOnField()
@@ -154,7 +237,7 @@ class InferenceLog(models.Model):
 
     id = UUIDPrimaryKeyField()
 
-    user = models.ForeignKey(User,
+    user = models.ForeignKey(UserAccount,
                              on_delete=models.CASCADE,
                              null=True,
                              blank=True)

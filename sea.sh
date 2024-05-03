@@ -24,10 +24,10 @@ USAGE
 }
 
 command_django() {
-    ${PYTHON} sea_server/manage.py "${@:1}"
+    ${PYTHON} sea_server/manage.py $@
 }
 
 case "$COMMAND" in
-    "django") command_django "$2" ;;
+    "django") shift && command_django "$@" ;;
     *) command_help ;;
 esac
