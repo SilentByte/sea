@@ -3,6 +3,7 @@
 # # Copyright (c) 2024 SilentByte <https://silentbyte.com/>
 # #
 
+import re
 import json
 
 from django.http import (
@@ -42,6 +43,18 @@ class HttpUnauthorizedResponse(HttpResponse):
         super().__init__(status=status.HTTP_401_UNAUTHORIZED)
 
 
+def extract_bearer_token(request: HttpRequest) -> str | None:
+    header = request.META.get('HTTP_AUTHORIZATION', None)
+    if header is None:
+        return None
+
+    match = re.match(r'^Bearer\s+([0-9a-zA-Z_\-]+)\s*$', header)
+    if not match:
+        return None
+
+    return match.group(1)
+
+
 @csrf_exempt
 def index(request: HttpRequest) -> HttpResponse:
     return render(request, 'index.html', status=status.HTTP_503_SERVICE_UNAVAILABLE)
@@ -75,6 +88,9 @@ def document(request: HttpRequest, file_hash: str) -> HttpResponse:
     if request.method != 'GET':
         return HttpMethodNotAllowedResponse()
 
+    if businesslogic.authenticate_with_token(extract_bearer_token(request)) is None:
+        return HttpUnauthorizedResponse()
+
     file_name = businesslogic.get_document_path(file_hash)
 
     if file_name is None:
@@ -92,10 +108,13 @@ def inference_query(request: HttpRequest) -> HttpResponse:
     if request.content_type != 'application/json':
         return HttpUnsupportedMediaTypeResponse()
 
+    if (user := businesslogic.authenticate_with_token(extract_bearer_token(request))) is None:
+        return HttpUnauthorizedResponse()
+
     body = json.loads(request.body)
 
     inference_result = businesslogic.execute_inference_query(
-        user=None,
+        user=user,
         inference_interactions=[
             InferenceInteraction(ii['originator'], ii['text'])
             for ii in body['inference_interactions']
