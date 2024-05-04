@@ -28,7 +28,7 @@ export interface IInferenceResult {
 }
 
 export class SeaApiClient {
-    private token: string | null;
+    private token: string | null = null;
 
     constructor(private baseUrl: string, token: string | null = null) {
         this.updateToken(token);

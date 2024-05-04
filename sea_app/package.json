@@ -6,6 +6,7 @@
     "scripts": {
         "dev": "vite",
         "build": "run-p type-check \"build-only {@}\" --",
+        "watch": "vue-tsc --build --watch",
         "preview": "vite preview",
         "build-only": "vite build",
         "type-check": "vue-tsc --build --force",
@@ -20,6 +21,7 @@
         "pinia": "^2.1.7",
         "vue": "^3.4.21",
         "vue-router": "^4.3.0",
+        "vue3-pdf-app": "^1.0.3",
         "vuetify": "^3.6.3"
     },
     "devDependencies": {

@@ -27,7 +27,7 @@
                               density="compact"
                               rounded="pill"
                               variant="solo-filled"
-                              placeholder="Search..." />
+                              placeholder="Access Documents…" />
             </v-responsive>
 
             <v-spacer />
@@ -58,7 +58,15 @@
         </v-navigation-drawer>
 
         <v-main>
-            Main Content
+            <div v-if="activePdfTab === null"
+                 class="pa-2 fill-height overflow-y-auto d-flex align-center justify-center flex-column">
+                <div style="opacity: 0.25; font-family: Ubuntu, Roboto, sans-serif; font-size: 24px">
+                    Interact with Eugene to access documents.
+                </div>
+            </div>
+            <PdfViewer v-else :key="activePdfTab.source.file_hash"
+                       :url="activePdfTab.url"
+                       :page-number="activePdfTab.source.start_page_no" />
         </v-main>
 
         <v-navigation-drawer floating permanent
@@ -70,10 +78,7 @@
                     variant="flat"
                     class="pa-2 fill-height overflow-y-auto d-flex align-center justify-center flex-column">
                 <div>
-                    <img alt="S.E.A. / Smart Engineering Assistant"
-                         src="@/assets/logo.svg"
-                         height="200"
-                         style="opacity: 0.1" />
+                    <Logo style="width: 200px; height: 200px; opacity: 0.2" />
                 </div>
                 <div class="mt-4"
                      style="opacity: 0.25; font-family: Ubuntu, Roboto, sans-serif; font-size: 24px">
@@ -121,7 +126,7 @@
                                         size="x-small"
                                         rounded="pill"
                                         :title="formatSourceName(s, false)"
-                                        @click="onOpenSource(s)">
+                                        @click="onOpenSource($event, s)">
                                     {{ formatSourceName(s, true) }}
                                 </v-chip>
                             </div>
@@ -191,10 +196,17 @@ import * as utils from "@/utils";
 import { SeaApiClient } from "@/api";
 
 import MarkdownDiv from "@/components/MarkdownDiv.vue";
+import PdfViewer from "@/components/PdfViewer.vue";
+import Logo from "@/components/Logo.vue";
 
 interface IChatHistory {
     inferenceInteraction: IInferenceInteraction;
     sources: IInferenceSource[];
+}
+
+interface IPdfTab {
+    url: string;
+    source: IInferenceSource;
 }
 
 const theme = useTheme();
@@ -204,6 +216,9 @@ const currentMessage = ref("");
 const chatHistoryEndMarker = ref(null);
 const chatHistory = ref<IChatHistory[]>([]);
 const chatInteractionPending = ref(false);
+
+const pdfTabs = ref<IPdfTab[]>([]);
+const activePdfTab = ref<IPdfTab | null>(null);
 
 // TODO: Implement authentication.
 const BASE_URL = "http://localhost:8000/api/";
@@ -291,9 +306,21 @@ function onChatKeyDown(e: KeyboardEvent) {
     }
 }
 
-function onOpenSource(source: IInferenceSource) {
+function onOpenSource(e: MouseEvent | KeyboardEvent, source: IInferenceSource) {
     const url = apiClient.buildDocumentUrl(source.file_hash);
-    utils.openUrlInTab(url);
+
+    if(e.ctrlKey) {
+        utils.openUrlInTab(url);
+    } else {
+        activePdfTab.value = {
+            url,
+            source,
+        };
+
+        if(!pdfTabs.value.some(t => t.source.file_hash === source.file_hash)) {
+            pdfTabs.value.push(activePdfTab.value);
+        }
+    }
 }
 
 </script>

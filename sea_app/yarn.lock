@@ -1687,6 +1687,11 @@ vue-tsc@^2.0.11:
     "@vue/language-core" "2.0.16"
     semver "^7.5.4"
 
+vue3-pdf-app@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/vue3-pdf-app/-/vue3-pdf-app-1.0.3.tgz#2f4ad738d7d86e8082a1aacbe498c5a08cb4d226"
+  integrity sha512-qegWTIF4wYKiocZ3KreB70wRXhqSdXWbdERDyyKzT7d5PbjKbS9tD6vaKkCqh3PzTM84NyKPYrQ3iuwJb60YPQ==
+
 vue@^3.4.21:
   version "3.4.26"
   resolved "https://registry.yarnpkg.com/vue/-/vue-3.4.26.tgz#936c97e37672c737705d7bdfa62c31af18742269"
