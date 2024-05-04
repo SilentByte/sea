@@ -27,7 +27,7 @@
                         density="compact"
                         rounded="pill"
                         variant="solo-filled"
-                        min-width="500"
+                        min-width="300"
                         max-width="500"
                         placeholder="Smart Document Access…"
                         append-inner-icon="mdi-magnify"

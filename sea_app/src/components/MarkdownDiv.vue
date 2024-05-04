@@ -29,14 +29,14 @@ function formatMarkdown(text: string): string {
         margin-bottom: 1em;
     }
 
-    :deep(ol, ul) {
+    :deep(ol), :deep(ul) {
         margin-bottom: 1.2em;
     }
 
-    :deep(ol, ul) {
+    :deep(ol), :deep(ul) {
         margin-left: 16px;
         list-style-position: outside;
-        font-size: 0.8em;
+        // font-size: 0.8em;
     }
 
     :deep(li) {
