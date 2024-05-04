@@ -39,7 +39,6 @@ const theme = useTheme();
 const pdfDataUrl = ref("");
 
 const pdfTheme = computed(() => {
-    console.log(theme.global.current.value.dark ? "dark" : "light");
     return theme.global.current.value.dark ? "dark" : "light";
 });
 
@@ -68,6 +67,10 @@ async function fetchPdfDataFromUrl(url: string) {
 </style>
 
 <style lang="scss">
+
+.pdf-app .toolbar {
+    z-index: 0 !important;
+}
 
 .pdf-app.dark {
     --pdf-toolbar-color: #2a2a2a !important;

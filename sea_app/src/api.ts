@@ -27,6 +27,11 @@ export interface IInferenceResult {
     sources: IInferenceSource[];
 }
 
+export interface IDocumentSearchResult {
+    file_name: string;
+    file_hash: string;
+}
+
 export class SeaApiClient {
     private token: string | null = null;
 
@@ -47,15 +52,24 @@ export class SeaApiClient {
     }
 
     private async request(method: "POST" | "GET", url: string, options: {
+        query?: Record<string, any>,
         body?: any;
         token?: string | null;
     }): Promise<any> {
+        if(options.query) {
+            url = url + "?" + new URLSearchParams(options.query);
+        }
+
         console.log(`Sending API request to ${method} ${url}:`);
-        console.log(options.body);
+
+        if(options.body) {
+            console.log(options.body);
+        }
 
         const response = await fetch(new URL(url, this.baseUrl), {
             method,
             body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+            credentials: "include",
             headers: {
                 ...(options.token !== undefined ? {"Authorization": `Bearer ${options.token}`} : {}),
                 ...(options.body !== undefined ? {"Content-Type": "application/json"} : {}),
@@ -94,6 +108,14 @@ export class SeaApiClient {
             token: this.token,
             body: {
                 inference_interactions,
+            },
+        });
+    }
+
+    async searchDocuments(query: string): Promise<IDocumentSearchResult[]> {
+        return await this.request("GET", "search_documents", {
+            query: {
+                query,
             },
         });
     }

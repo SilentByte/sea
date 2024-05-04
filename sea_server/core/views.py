@@ -114,11 +114,11 @@ def search_documents(request: HttpRequest) -> HttpResponse:
     if businesslogic.authenticate_with_token(extract_token(request)) is None:
         return HttpUnauthorizedResponse()
 
-    body = json.loads(request.body)
+    query = request.GET.get('query', '')
 
     return JsonResponse([
         di.to_dict()
-        for di in businesslogic.search_documents(body['query'])
+        for di in businesslogic.search_documents(query)
     ], safe=False)
 
 

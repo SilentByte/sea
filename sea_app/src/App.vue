@@ -22,13 +22,51 @@
 
             <v-spacer />
 
-            <v-responsive max-width="300">
-                <v-text-field flat hide-details
-                              density="compact"
-                              rounded="pill"
-                              variant="solo-filled"
-                              placeholder="Access Documents…" />
-            </v-responsive>
+            <v-combobox ref="smartSearchComboBoxRef"
+                        flat hide-details
+                        density="compact"
+                        rounded="pill"
+                        variant="solo-filled"
+                        min-width="500"
+                        max-width="500"
+                        placeholder="Smart Document Access…"
+                        append-inner-icon="mdi-magnify"
+                        item-title="source.file_name"
+                        item-value="source.file_hash"
+                        :menu-props="{maxHeight: 800}"
+                        :custom-filter="smartSearchFilter as any"
+                        :items="combinedPdfTabs"
+                        :hide-no-data="false"
+                        :return-object="true"
+                        @update:modelValue="onSmartSearch"
+                        @blur="onClearSmartSearch">
+                <template v-slot:append-inner>
+                    <v-chip v-if="pdfTabs.length > 0"
+                            size="small"
+                            rounded="pill">
+                        {{ pdfTabs.length }} Open
+                    </v-chip>
+                    <v-btn v-if="smartSearchPendingCounter > 0"
+                           loading
+                           size="small"
+                           icon="" />
+                </template>
+                <template v-slot:item="{ props, item }">
+                    <v-list-item v-if="item.raw.source.text"
+                                 v-bind="props"
+                                 max-width="500"
+                                 lines="three"
+                                 :title="item.raw.source.file_name"
+                                 :subtitle="item.raw.source.text"
+                                 :append-icon="hasTabWithDocument(item.raw.source.file_hash) ? 'mdi-check-circle' : undefined" />
+                    <v-list-item v-else
+                                 v-bind="props"
+                                 max-width="500"
+                                 lines="one"
+                                 :title="item.raw.source.file_name"
+                                 :append-icon="hasTabWithDocument(item.raw.source.file_hash) ? 'mdi-check-circle' : undefined" />
+                </template>
+            </v-combobox>
 
             <v-spacer />
 
@@ -150,7 +188,7 @@
                     </v-row>
                 </v-card-text>
 
-                <div ref="chatHistoryEndMarker" />
+                <div ref="chatHistoryEndMarkerRef" />
             </v-card>
 
             <template v-slot:append>
@@ -180,6 +218,7 @@
 <script setup lang="ts">
 
 import {
+    computed,
     nextTick,
     ref,
 } from "vue";
@@ -191,9 +230,9 @@ import type {
     IInferenceSource,
 } from "@/api";
 
-import * as utils from "@/utils";
-
 import { SeaApiClient } from "@/api";
+
+import * as utils from "@/utils";
 
 import MarkdownDiv from "@/components/MarkdownDiv.vue";
 import PdfViewer from "@/components/PdfViewer.vue";
@@ -213,12 +252,26 @@ const theme = useTheme();
 
 const chatDrawerVisible = ref(true);
 const currentMessage = ref("");
-const chatHistoryEndMarker = ref(null);
+const chatHistoryEndMarkerRef = ref(null);
 const chatHistory = ref<IChatHistory[]>([]);
 const chatInteractionPending = ref(false);
 
+const smartSearchComboBoxRef = ref(null);
+const smartSearchPendingCounter = ref(0);
+const smartSearchResults = ref<IPdfTab[]>([]);
+const smartSearchLatestQueryId = ref("");
+
 const pdfTabs = ref<IPdfTab[]>([]);
 const activePdfTab = ref<IPdfTab | null>(null);
+
+const combinedPdfTabs = computed(() => {
+    return [
+        ...smartSearchResults
+            .value
+            .filter(r => !pdfTabs.value.some(tab => tab.source.file_hash === r.source.file_hash)),
+        ...pdfTabs.value,
+    ];
+});
 
 // TODO: Implement authentication.
 const BASE_URL = "http://localhost:8000/api/";
@@ -226,13 +279,17 @@ const TEST_TOKEN = "YhsbwvwQIZQVPtci1jNuucujSywDYK-S7FzmqJi2kD0leKmDbNGT2as4dcbj
 
 const apiClient = new SeaApiClient(BASE_URL, TEST_TOKEN);
 
+function truncateString(text: string, maxLength: number) {
+    return text.substring(0, maxLength - 1) + "…";
+}
+
 function formatSourceName(s: IInferenceSource, truncate: boolean) {
     const MAX_TRUNCATED_LENGTH = 28;
 
     let name = s.file_name;
 
     if(truncate && s.file_name.length > MAX_TRUNCATED_LENGTH) {
-        name = name.substring(0, MAX_TRUNCATED_LENGTH - 1) + "…";
+        name = truncateString(name, MAX_TRUNCATED_LENGTH);
     }
 
     if(s.start_page_no === s.end_page_no) {
@@ -242,12 +299,31 @@ function formatSourceName(s: IInferenceSource, truncate: boolean) {
     return `${name} pp. ${s.start_page_no}-${s.end_page_no}`;
 }
 
+function hasTabWithDocument(hash: string) {
+    return pdfTabs.value.some(tab => tab.source.file_hash === hash);
+}
+
 async function scrollChatHistoryToBottom() {
-    const element = (chatHistoryEndMarker.value as any);
+    const element = (chatHistoryEndMarkerRef.value as any);
     if(element) {
         await nextTick();
         element.scrollIntoView({behavior: "smooth"});
     }
+}
+
+function smartSearchFilter(value: string, query: string) {
+    const SPLIT_REGEX = /[\s\-_.]+/;
+
+    const valueTags = value.toLowerCase().split(SPLIT_REGEX).join(":");
+    const queryTags = new Set(query.toLowerCase().split(SPLIT_REGEX));
+
+    for(const t of queryTags) {
+        if(valueTags.includes(t)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function onToggleTheme() {
@@ -306,10 +382,10 @@ function onChatKeyDown(e: KeyboardEvent) {
     }
 }
 
-function onOpenSource(e: MouseEvent | KeyboardEvent, source: IInferenceSource) {
+function onOpenSource(e: MouseEvent | KeyboardEvent | null, source: IInferenceSource) {
     const url = apiClient.buildDocumentUrl(source.file_hash);
 
-    if(e.ctrlKey) {
+    if(e && e.ctrlKey) {
         utils.openUrlInTab(url);
     } else {
         activePdfTab.value = {
@@ -321,6 +397,50 @@ function onOpenSource(e: MouseEvent | KeyboardEvent, source: IInferenceSource) {
             pdfTabs.value.push(activePdfTab.value);
         }
     }
+}
+
+async function onSmartSearch(query: string | any | null) {
+    if(query && typeof query == "object") {
+        onOpenSource(null, query.source);
+        (smartSearchComboBoxRef.value as any)?.reset();
+        return;
+    }
+
+    query = query?.trim() || null;
+
+    if(!query) {
+        return;
+    }
+
+    try {
+        const queryId = utils.uuid();
+
+        smartSearchPendingCounter.value += 1;
+        smartSearchLatestQueryId.value = queryId;
+
+        const response = await apiClient.searchDocuments(query);
+
+        if(smartSearchLatestQueryId.value !== queryId) {
+            return;
+        }
+
+        smartSearchResults.value = response.map(dsr => ({
+            url: apiClient.buildDocumentUrl(dsr.file_hash),
+            source: {
+                text: "",
+                file_hash: dsr.file_hash,
+                file_name: dsr.file_name,
+                start_page_no: 0,
+                end_page_no: 0,
+            },
+        }));
+    } finally {
+        smartSearchPendingCounter.value -= 1;
+    }
+}
+
+async function onClearSmartSearch() {
+    (smartSearchComboBoxRef.value as any)?.reset();
 }
 
 </script>

@@ -174,6 +174,9 @@ class DocumentInfo:
 def search_documents(query: str) -> list[DocumentInfo]:
     query = query.strip()
 
+    if not query:
+        return []
+
     documents = Document.objects.filter(
         Q(file_name=query)
         | Q(file_hash=query.lower())
@@ -182,7 +185,7 @@ def search_documents(query: str) -> list[DocumentInfo]:
     ).order_by('file_name')[:6]
 
     return [
-        DocumentInfo(d.file_name, d.file_hash)
+        DocumentInfo(os.path.basename(d.file_name), d.file_hash)
         for d in documents
     ]
 

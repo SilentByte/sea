@@ -3,6 +3,12 @@
  * Copyright (c) 2024 SilentByte <https://silentbyte.com/>
  */
 
+import { v4 as uuid4 } from "uuid";
+
+export function uuid(): string {
+    return uuid4();
+}
+
 export async function sleep(seconds: number): Promise<void> {
     return new Promise((resolve) => {
         setTimeout(resolve, seconds * 1000);
