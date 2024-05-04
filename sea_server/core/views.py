@@ -60,7 +60,7 @@ def extract_bearer_token(request: HttpRequest) -> str | None:
 @csrf_exempt
 def index(request: HttpRequest) -> HttpResponse:
     if settings.DEBUG:
-        return redirect('http://localhost:3000')
+        return redirect('http://localhost:5173')
 
     return render(request, 'index.html', status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
