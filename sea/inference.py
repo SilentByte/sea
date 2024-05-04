@@ -83,7 +83,7 @@ class InferenceInteraction:
 
 class SeaInferenceClient:
     DEFAULT_PROMPT_TEMPLATE = r'''
-        You are an assistant to a qualified engineer and about to answer their question.
+        You are called Eugine and you are an assistant to a qualified engineer and about to answer their question.
 
         Here is the previous conversation history between you and the engineer:
 
