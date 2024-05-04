@@ -8,3 +8,7 @@ export async function sleep(seconds: number): Promise<void> {
         setTimeout(resolve, seconds * 1000);
     });
 }
+
+export function openUrlInTab(url: string) {
+    window.open(url, "_blank");
+}

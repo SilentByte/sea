@@ -181,8 +181,15 @@ import {
 
 import { useTheme } from "vuetify";
 
-import type { IInferenceInteraction, IInferenceSource } from "@/api";
+import type {
+    IInferenceInteraction,
+    IInferenceSource,
+} from "@/api";
+
+import * as utils from "@/utils";
+
 import { SeaApiClient } from "@/api";
+
 import MarkdownDiv from "@/components/MarkdownDiv.vue";
 
 interface IChatHistory {
@@ -198,8 +205,9 @@ const chatHistoryEndMarker = ref(null);
 const chatHistory = ref<IChatHistory[]>([]);
 const chatInteractionPending = ref(false);
 
+// TODO: Implement authentication.
 const BASE_URL = "http://localhost:8000/api/";
-const TEST_TOKEN = "";
+const TEST_TOKEN = "YhsbwvwQIZQVPtci1jNuucujSywDYK-S7FzmqJi2kD0leKmDbNGT2as4dcbj";
 
 const apiClient = new SeaApiClient(BASE_URL, TEST_TOKEN);
 
@@ -284,7 +292,8 @@ function onChatKeyDown(e: KeyboardEvent) {
 }
 
 function onOpenSource(source: IInferenceSource) {
-    console.log(source);
+    const url = apiClient.buildDocumentUrl(source.file_hash);
+    utils.openUrlInTab(url);
 }
 
 </script>

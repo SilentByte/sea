@@ -3,6 +3,8 @@
  * Copyright (c) 2024 SilentByte <https://silentbyte.com/>
  */
 
+import Cookies from "js-cookie";
+
 export interface IAuthenticatedUser {
     display_name: string;
 }
@@ -26,8 +28,22 @@ export interface IInferenceResult {
 }
 
 export class SeaApiClient {
-    constructor(private baseUrl: string, private token: string | null = null) {
-        //
+    private token: string | null;
+
+    constructor(private baseUrl: string, token: string | null = null) {
+        this.updateToken(token);
+    }
+
+    private updateToken(token: string | null) {
+        this.token = token;
+
+        if(this.token) {
+            localStorage.setItem("app.token", this.token);
+            Cookies.set("X-Authorization-Token", this.token);
+        } else {
+            localStorage.removeItem("app.token");
+            Cookies.remove("X-Authorization-Token");
+        }
     }
 
     private async request(method: "POST" | "GET", url: string, options: {
@@ -66,7 +82,8 @@ export class SeaApiClient {
             },
         });
 
-        this.token = response.token;
+        this.updateToken(response.token);
+
         return {
             display_name: response.display_name,
         };
@@ -82,6 +99,6 @@ export class SeaApiClient {
     }
 
     buildDocumentUrl(hash: string): string {
-        return (new URL(`api/document/${hash}`, this.baseUrl)).toString();
+        return (new URL(`document/${hash}`, this.baseUrl)).toString();
     }
 }
