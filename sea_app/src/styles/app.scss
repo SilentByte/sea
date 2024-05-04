@@ -1,0 +1,44 @@
+/*
+ * SEA / SMART ENGINEERING ASSISTANT
+ * Copyright (c) 2024 SilentByte <https://silentbyte.com/>
+ */
+
+$scrollbar-background-color: #f7f7f7;
+$scrollbar-thumb-color: #555;
+$scrollbar-thumb-hover-color: #888;
+
+html {
+    overflow-y: auto !important;
+}
+
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    // background-color: $scrollbar-background-color;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: $scrollbar-thumb-color;
+    border-radius: 999px;
+    // border: 2px solid $scrollbar-background-color;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background-color: $scrollbar-thumb-hover-color;
+}
+
+.hide-scrollbar textarea::-webkit-scrollbar {
+    display: none;
+}
+
+.hide-scrollbar textarea {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.outlined-textarea-scrollbar-fix textarea {
+    margin: 8px 8px 8px 0 !important;
+}

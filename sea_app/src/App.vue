@@ -4,95 +4,91 @@
 -->
 
 <template>
-    <header>
-        <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
+    <v-app>
+        <v-app-bar class="border-b-thin">
+            <v-btn height="80"
+                   color="primary"
+                   class="ms-0 rounded-s-0 rounded-e-pill"
+                   variant="flat">
+                <img alt="S.E.A. / Smart Engineering Assistant"
+                     src="@/assets/logo.svg"
+                     height="42" />
 
-        <div class="wrapper">
-            <HelloWorld msg="You did it!" />
+                <div class="mx-2"
+                     style="font-family: Ubuntu, Roboto, sans-serif; font-size: 22px">
+                    S.E.A.
+                </div>
+            </v-btn>
 
-            <nav>
-                <RouterLink to="/">Home</RouterLink>
-                <RouterLink to="/about">About</RouterLink>
-            </nav>
-        </div>
-    </header>
+            <v-spacer />
 
-    <RouterView />
+            <v-responsive max-width="300">
+                <v-text-field flat hide-details
+                              density="compact"
+                              rounded="pill"
+                              variant="solo-filled"
+                              placeholder="Search..." />
+            </v-responsive>
+
+            <v-spacer />
+
+            <v-btn size="small"
+                   icon="mdi-theme-light-dark"
+                   @click="onToggleTheme" />
+        </v-app-bar>
+
+        <v-navigation-drawer rail>
+            <v-avatar class="d-block text-center mx-auto mt-4"
+                      color="grey-darken-1"
+                      size="36" />
+
+            <v-divider class="mx-3 my-5" />
+
+            <v-avatar
+                    v-for="n in 6"
+                    :key="n"
+                    class="d-block text-center mx-auto mb-9"
+                    color="grey-lighten-1"
+                    size="28" />
+        </v-navigation-drawer>
+
+        <v-main>
+            Main Content
+        </v-main>
+
+        <v-navigation-drawer floating
+                             location="right"
+                             width="600">
+            <v-card variant="flat"
+                    class="pa-2 fill-height">
+                Chat
+            </v-card>
+
+            <template v-slot:append>
+                <v-textarea flat hide-details auto-grow no-resize rounded
+                            class="ma-2 outlined-textarea-scrollbar-fix"
+                            density="compact"
+                            variant="outlined"
+                            rows="1"
+                            max-rows="6"
+                            placeholder="What's your question?" />
+            </template>
+        </v-navigation-drawer>
+    </v-app>
 </template>
 
 <script setup lang="ts">
 
-import {
-    RouterLink,
-    RouterView,
-} from "vue-router";
+import { useTheme } from "vuetify";
 
-import HelloWorld from "./components/HelloWorld.vue";
+const theme = useTheme();
+
+function onToggleTheme() {
+    theme.global.name.value = theme.global.current.value.dark ? "seaLight" : "seaDark";
+}
 
 </script>
 
-<style scoped>
-
-header {
-    line-height: 1.5;
-    max-height: 100vh;
-}
-
-.logo {
-    display: block;
-    margin: 0 auto 2rem;
-}
-
-nav {
-    width: 100%;
-    font-size: 12px;
-    text-align: center;
-    margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-    color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-    background-color: transparent;
-}
-
-nav a {
-    display: inline-block;
-    padding: 0 1rem;
-    border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-    border: 0;
-}
-
-@media (min-width: 1024px) {
-    header {
-        display: flex;
-        place-items: center;
-        padding-right: calc(var(--section-gap) / 2);
-    }
-
-    .logo {
-        margin: 0 2rem 0 0;
-    }
-
-    header .wrapper {
-        display: flex;
-        place-items: flex-start;
-        flex-wrap: wrap;
-    }
-
-    nav {
-        text-align: left;
-        margin-left: -1rem;
-        font-size: 1rem;
-
-        padding: 1rem 0;
-        margin-top: 1rem;
-    }
-}
+<style lang="scss">
 
 </style>
