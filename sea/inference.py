@@ -82,7 +82,7 @@ class InferenceInteraction:
 
 
 class SeaInferenceClient:
-    DEFAULT_PROMPT_TEMPLATE = r'''
+    DEFAULT_TECHNICAL_PROMPT_TEMPLATE = r'''
         You are called Eugine and you are an assistant to a qualified engineer and about to answer their question.
 
         Here is the previous conversation history between you and the engineer:
@@ -97,7 +97,40 @@ class SeaInferenceClient:
 
         {question}
 
-        Your response must exclusively be formatted using markdown.
+        Your response must exclusively be formatted using markdown, but do not use ```markdown``` code blocks.
+    '''
+
+    DEFAULT_CASUAL_PROMPT_TEMPLATE = r'''
+        You are called Eugine and you are an assistant to a qualified engineer and about to answer their question.
+
+        Here is the previous conversation history between you and the engineer:
+
+        {history}
+
+        Based on these results, answer the following question:
+
+        {question}
+    '''
+
+    DEFAULT_INITIAL_PROMPT_TEMPLATE = r'''
+        You are called Eugine and you are an assistant to a qualified engineer and about to answer their question.
+
+        You need to classify if a message is either of casual or technical nature.
+        If it is a casual message, answer "CASUAL". If it is a technical message, answer "TECHNICAL".
+
+        Here are some examples:
+
+        If the message is related to greetings, thanks, or good-byes, say CASUAL.
+
+        If the message is related to general small talk, say CASUAL.
+
+        If the message is related to aircraft, engines, engineering, mechanics, etc., say TECHNICAL.
+
+        If the message is a question that is asking for specific documentation, say TECHNICAL.
+
+        Only answer with "CASUAL" or "TECHNICAL".
+
+        Given the previous chat history: {history}, classify this message: {question}
     '''
 
     def __init__(
@@ -139,10 +172,22 @@ class SeaInferenceClient:
             'k': self.result_count,
         })
 
-    def _prompt_template(self) -> PromptTemplate:
+    def _technical_prompt_template(self) -> PromptTemplate:
         return PromptTemplate(
             input_variables=['history', 'question', 'search_results'],
-            template=utils.dedent(self.prompt_template_override or SeaInferenceClient.DEFAULT_PROMPT_TEMPLATE),
+            template=utils.dedent(self.prompt_template_override or SeaInferenceClient.DEFAULT_TECHNICAL_PROMPT_TEMPLATE),
+        )
+
+    def _casual_prompt_template(self) -> PromptTemplate:
+        return PromptTemplate(
+            input_variables=['history', 'question', ],
+            template=utils.dedent(SeaInferenceClient.DEFAULT_CASUAL_PROMPT_TEMPLATE),
+        )
+
+    def _initial_prompt_template(self) -> PromptTemplate:
+        return PromptTemplate(
+            input_variables=['history', 'question'],
+            template=utils.dedent(SeaInferenceClient.DEFAULT_INITIAL_PROMPT_TEMPLATE),
         )
 
     @staticmethod
@@ -198,12 +243,42 @@ class SeaInferenceClient:
 
         return SeaInferenceClient._extract_sources(search_results)
 
+    def infer_technical_question(self, interaction_history: list[InferenceInteraction]) -> bool:
+        prompt_template = self._initial_prompt_template()
+
+        inference_result = (
+                prompt_template
+                | self.agent_model
+                | StrOutputParser()
+        ).invoke({
+            'history': SeaInferenceClient._concatenate_history_text(interaction_history),
+            'question': SeaInferenceClient._extract_question(interaction_history),
+        })
+
+        if 'CASUAL' in inference_result:
+            return False
+
+        if 'TECHNICAL' in inference_result:
+            return True
+
+        if 'CASUAL' in inference_result.upper():
+            return False
+
+        if 'TECHNICAL' in inference_result.upper():
+            return True
+
+        return False
+
     def infer_interaction(self, interaction_history: list[InferenceInteraction]) -> InferenceResult:
         if len(interaction_history) == 0:
             raise ValueError('Interaction history must not be empty')
 
-        search_results = self._search_index(interaction_history)
-        prompt_template = self._prompt_template()
+        if self.infer_technical_question(interaction_history):
+            search_results = self._search_index(interaction_history)
+            prompt_template = self._technical_prompt_template()
+        else:
+            search_results = []
+            prompt_template = self._casual_prompt_template()
 
         inference_result = (
                 prompt_template
