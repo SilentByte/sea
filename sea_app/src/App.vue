@@ -32,7 +32,14 @@
 
             <v-spacer />
 
-            <v-btn size="small"
+            <v-btn class="mx-1"
+                   size="small"
+                   icon="mdi-robot-excited-outline"
+                   :active="chatDrawerVisible"
+                   @click="onToggleChat" />
+
+            <v-btn class="ms-1 me-2"
+                   size="small"
                    icon="mdi-theme-light-dark"
                    @click="onToggleTheme" />
         </v-app-bar>
@@ -56,22 +63,35 @@
             Main Content
         </v-main>
 
-        <v-navigation-drawer floating
+        <v-navigation-drawer floating permanent
+                             class="border-s-thin"
                              location="right"
-                             width="600">
+                             width="600"
+                             v-model="chatDrawerVisible">
+
             <v-card variant="flat"
-                    class="pa-2 fill-height">
+                    class="pa-2 fill-height overflow-y-auto">
                 Chat
             </v-card>
 
             <template v-slot:append>
                 <v-textarea flat hide-details auto-grow no-resize rounded
-                            class="ma-2 outlined-textarea-scrollbar-fix"
+                            class="ma-2 hide-scrollbar outlined-textarea-scrollbar-fix"
                             density="compact"
                             variant="outlined"
                             rows="1"
                             max-rows="6"
-                            placeholder="What's your question?" />
+                            placeholder="What's your question?"
+                            v-model="currentMessage"
+                            @keydown=onChatKeyDown>
+                    <template v-slot:append-inner>
+                        <v-btn variant="flat"
+                               color="primary"
+                               size="x-small"
+                               icon="mdi-chevron-right"
+                               @click="onSendMessage" />
+                    </template>
+                </v-textarea>
             </template>
         </v-navigation-drawer>
     </v-app>
@@ -79,12 +99,39 @@
 
 <script setup lang="ts">
 
+import { ref } from "vue";
+
 import { useTheme } from "vuetify";
 
 const theme = useTheme();
 
+const chatDrawerVisible = ref(true);
+const currentMessage = ref("");
+
 function onToggleTheme() {
     theme.global.name.value = theme.global.current.value.dark ? "seaLight" : "seaDark";
+}
+
+function onToggleChat() {
+    chatDrawerVisible.value = !chatDrawerVisible.value;
+}
+
+function onSendMessage() {
+    const message = currentMessage.value.trim();
+
+    if(!message) {
+        return;
+    }
+
+    console.log("SEND MESSAGE: " + message);
+    currentMessage.value = "";
+}
+
+function onChatKeyDown(e: KeyboardEvent) {
+    if(e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        onSendMessage();
+    }
 }
 
 </script>
