@@ -35,12 +35,20 @@ export interface IDocumentSearchResult {
 export class SeaApiClient {
     private token: string | null = null;
 
-    constructor(private baseUrl: string, token: string | null = null) {
+    constructor(private baseUrl: string, token: string | undefined | null = undefined) {
         this.updateToken(token);
     }
 
-    private updateToken(token: string | null) {
-        this.token = token;
+    get isAuthenticated(): boolean {
+        return !!this.token;
+    }
+
+    private updateToken(token?: string | null) {
+        if(token === undefined && this.token === null) {
+            this.token = localStorage.getItem("app.token");
+        } else if(token !== undefined) {
+            this.token = token;
+        }
 
         if(this.token) {
             localStorage.setItem("app.token", this.token);
@@ -86,6 +94,10 @@ export class SeaApiClient {
         console.log(responseData);
 
         return responseData;
+    }
+
+    clearToken(): void {
+        this.updateToken(null);
     }
 
     async authenticate(email: string, password: string): Promise<IAuthenticatedUser> {

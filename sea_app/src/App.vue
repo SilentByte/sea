@@ -107,8 +107,9 @@
             <template v-slot:append>
                 <v-list nav
                         density="default">
+                    <!-- TODO: Serve as dummy sign out for now. -->
                     <v-list-item prepend-icon="mdi-cogs"
-                                 @click="() => {}" />
+                                 @click="onSignOut" />
                 </v-list>
             </template>
         </v-navigation-drawer>
@@ -137,6 +138,7 @@
                              v-model="chatDrawerVisible">
             <v-card v-if="chatHistory.length === 0"
                     variant="flat"
+                    rounded="0"
                     class="pa-2 fill-height overflow-y-auto d-flex align-center justify-center flex-column">
                 <div>
                     <Logo style="width: 200px; height: 200px; opacity: 0.2" />
@@ -150,6 +152,7 @@
             </v-card>
             <v-card v-else
                     variant="flat"
+                    rounded="0"
                     class="pa-2 fill-height overflow-y-auto">
                 <v-card-text>
                     <v-row>
@@ -237,6 +240,63 @@
                 </v-textarea>
             </template>
         </v-navigation-drawer>
+
+        <v-dialog fullscreen no-click-animation
+                  :model-value="!userAuthCompleted"
+                  :transition="userAuthCompleted ? undefined : 'none'"
+                  :close-on-content-click="false"
+                  :close-on-back="false">
+            <v-card rounded="0"
+                    variant="flat">
+                <v-container class="d-flex align-center justify-center fill-height">
+                    <v-card width="400"
+                            variant="tonal">
+                        <v-btn block
+                               class="ms-0 rounded-t-0 rounded-b-circle"
+                               height="120"
+                               color="primary"
+                               variant="flat">
+                            <img alt="S.E.A. / Smart Engineering Assistant"
+                                 src="@/assets/logo.svg"
+                                 height="60" />
+
+                            <div class="mx-2"
+                                 style="font-family: Ubuntu, Roboto, sans-serif; font-size: 36px">
+                                S.E.A.
+                            </div>
+                        </v-btn>
+                        <v-container class="mt-8 mb-6 px-8">
+                            <v-row>
+                                <v-col cols="12">
+                                    <v-text-field hide-details autofocus
+                                                  density="compact"
+                                                  variant="solo-filled"
+                                                  placeholder="E-Mail"
+                                                  v-model="userAuthEmail" />
+                                </v-col>
+                                <v-col cols="12">
+                                    <v-text-field hide-details
+                                                  density="compact"
+                                                  variant="solo-filled"
+                                                  type="password"
+                                                  placeholder="Password"
+                                                  v-model="userAuthPassword" />
+                                </v-col>
+                                <v-col cols="12"
+                                       class="mt-8">
+                                    <v-btn size="large"
+                                           block
+                                           :loading="userAuthPending"
+                                           @click="onSignIn">
+                                        Sign In
+                                    </v-btn>
+                                </v-col>
+                            </v-row>
+                        </v-container>
+                    </v-card>
+                </v-container>
+            </v-card>
+        </v-dialog>
     </v-app>
 </template>
 
@@ -275,6 +335,8 @@ interface IPdfTab {
 
 const theme = useTheme();
 
+const authOverlay = ref(true);
+
 const chatDrawerVisible = ref(true);
 const currentMessage = ref("");
 const chatHistoryEndMarkerRef = ref(null);
@@ -289,6 +351,19 @@ const smartSearchLatestQueryId = ref("");
 const pdfTabs = ref<IPdfTab[]>([]);
 const activePdfTab = ref<IPdfTab | null>(null);
 
+const userAvatar = ref("https://rab-stuff.web.app/sea/avatar.png");
+const userAuthCompleted = ref(false);
+const userAuthPending = ref(false);
+const userAuthEmail = ref("");
+const userAuthPassword = ref("");
+
+// TODO: Move into build configuration.
+const BASE_URL = "http://localhost:8000/api/";
+
+const apiClient = new SeaApiClient(BASE_URL);
+
+userAuthCompleted.value = apiClient.isAuthenticated;
+
 const combinedPdfTabs = computed(() => {
     return [
         ...smartSearchResults
@@ -297,14 +372,6 @@ const combinedPdfTabs = computed(() => {
         ...pdfTabs.value,
     ];
 });
-
-const userAvatar = ref("https://rab-stuff.web.app/sea/avatar.png");
-
-// TODO: Implement authentication.
-const BASE_URL = "http://localhost:8000/api/";
-const TEST_TOKEN = "YhsbwvwQIZQVPtci1jNuucujSywDYK-S7FzmqJi2kD0leKmDbNGT2as4dcbj";
-
-const apiClient = new SeaApiClient(BASE_URL, TEST_TOKEN);
 
 function truncateString(text: string, maxLength: number) {
     return text.substring(0, maxLength - 1) + "…";
@@ -351,6 +418,21 @@ function smartSearchFilter(value: string, query: string) {
     }
 
     return false;
+}
+
+async function onSignIn() {
+    try {
+        userAuthPending.value = true;
+        await apiClient.authenticate(userAuthEmail.value, userAuthPassword.value);
+        userAuthCompleted.value = apiClient.isAuthenticated;
+    } finally {
+        userAuthPending.value = false;
+    }
+}
+
+function onSignOut() {
+    apiClient.clearToken();
+    userAuthCompleted.value = false;
 }
 
 function onToggleTheme() {
