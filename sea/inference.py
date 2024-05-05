@@ -97,6 +97,8 @@ class SeaInferenceClient:
 
         {question}
 
+        When asked for contact details, be concise.
+
         Your response must exclusively be formatted using markdown, but do not use ```markdown``` code blocks.
     '''
 
@@ -128,7 +130,7 @@ class SeaInferenceClient:
 
         If the message is a question that is asking for specific documentation, say TECHNICAL.
 
-        Only answer with "CASUAL" or "TECHNICAL".
+        Your answer to classify the message be "CASUAL" or "TECHNICAL", do not write any additional text.
 
         Given the previous chat history: {history}, classify this message: {question}
     '''
@@ -224,8 +226,8 @@ class SeaInferenceClient:
                 text=sr.page_content,
                 file_name=os.path.basename(sr.metadata['file_name']),
                 file_hash=sr.metadata['file_hash'],
-                start_page_no=int(sr.metadata['start_page_no']),
-                end_page_no=int(sr.metadata['end_page_no']),
+                start_page_no=int(sr.metadata['start_page_no']) + 1,
+                end_page_no=int(sr.metadata['end_page_no']) + 1,
             )
             for sr in search_results
         ]
