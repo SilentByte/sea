@@ -82,7 +82,8 @@
                    @click="onToggleTheme" />
         </v-app-bar>
 
-        <v-navigation-drawer rail>
+        <v-navigation-drawer rail
+                             permanent>
             <v-list nav
                     density="default">
                 <v-list-item :prepend-avatar="userAvatar"
@@ -241,7 +242,7 @@
             </template>
         </v-navigation-drawer>
 
-        <v-dialog fullscreen no-click-animation
+        <v-dialog fullscreen no-click-animation persistent
                   :model-value="!userAuthCompleted"
                   :transition="userAuthCompleted ? undefined : 'none'"
                   :close-on-content-click="false"
@@ -334,8 +335,6 @@ interface IPdfTab {
 }
 
 const theme = useTheme();
-
-const authOverlay = ref(true);
 
 const chatDrawerVisible = ref(true);
 const currentMessage = ref("");
