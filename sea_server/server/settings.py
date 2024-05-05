@@ -20,6 +20,7 @@ DB_PORT = int(os.environ['DB_PORT'])
 DB_NAME = os.environ['DB_NAME']
 DB_USER = os.environ['DB_USER']
 DB_PASSWORD = os.environ['DB_PASSWORD']
+DB_SSL_MODE = os.environ.get('DB_SSL_MODE', 'require')
 
 SECRET_KEY = os.environ['SECRET_KEY']
 
@@ -82,7 +83,7 @@ DATABASES = {
         'PASSWORD': DB_PASSWORD,
         'NAME': DB_NAME,
         'OPTIONS': {
-            'sslmode': 'require',
+            'sslmode': DB_SSL_MODE,
             'server_side_binding': True,
         },
     },

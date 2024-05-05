@@ -101,7 +101,8 @@ def authenticate_with_token(token: str) -> UserAccount | None:
 
     auth_token: AuthToken = AuthToken.objects \
         .select_related('user') \
-        .filter(token=token, expires_on__gt=now) \
+        .filter(token=token) \
+        .filter(Q(expires_on__isnull=True) | Q(expires_on__gt=now)) \
         .first()
 
     if auth_token is None:

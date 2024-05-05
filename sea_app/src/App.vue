@@ -27,10 +27,10 @@
                         density="compact"
                         rounded="pill"
                         variant="solo-filled"
-                        min-width="300"
+                        min-width="500"
                         max-width="500"
-                        placeholder="Smart Document Access…"
-                        append-inner-icon="mdi-magnify"
+                        placeholder="Smart Search for Documents…"
+                        prepend-inner-icon="mdi-magnify"
                         item-title="source.file_name"
                         item-value="source.file_hash"
                         :menu-props="{maxHeight: 800}"
@@ -83,23 +83,46 @@
         </v-app-bar>
 
         <v-navigation-drawer rail>
-            <v-avatar class="d-block text-center mx-auto mt-4"
-                      color="grey-darken-1"
-                      size="36" />
+            <v-list nav
+                    density="default">
+                <v-list-item :prepend-avatar="userAvatar"
+                             @click="() => {}" />
 
-            <v-divider class="mx-3 my-5" />
+                <v-divider class="mx-2 my-2" />
 
-            <v-avatar v-for="n in 6" :key="n"
-                      class="d-block text-center mx-auto mb-9"
-                      color="grey-lighten-1"
-                      size="28" />
+                <v-list-item active
+                             prepend-icon="mdi-book-open-variant-outline"
+                             @click="() => {}" />
+
+                <v-list-item prepend-icon="mdi-calendar-clock-outline"
+                             @click="() => {}" />
+
+                <v-list-item prepend-icon="mdi-tools"
+                             @click="() => {}" />
+
+                <v-list-item prepend-icon="mdi-map-marker"
+                             @click="() => {}" />
+            </v-list>
+
+            <template v-slot:append>
+                <v-list nav
+                        density="default">
+                    <v-list-item prepend-icon="mdi-cogs"
+                                 @click="() => {}" />
+                </v-list>
+            </template>
         </v-navigation-drawer>
 
         <v-main>
             <div v-if="activePdfTab === null"
                  class="pa-2 fill-height overflow-y-auto d-flex align-center justify-center flex-column">
-                <div style="opacity: 0.25; font-family: Ubuntu, Roboto, sans-serif; font-size: 24px">
-                    Interact with Eugene to access documents.
+                <div class="text-center"
+                     style="font-family: Ubuntu, Roboto, sans-serif; font-size: 24px">
+                    <span style="opacity: 0.25">Use </span>
+                    <span style="opacity: 0.45">Smart Search </span>
+                    <span style="opacity: 0.25">or interact <br> with </span>
+                    <span style="opacity: 0.45">Eugene </span>
+                    <span style="opacity: 0.25">to access documents.</span>
                 </div>
             </div>
             <PdfViewer v-else :key="activePdfTab.source.file_hash"
@@ -119,8 +142,10 @@
                     <Logo style="width: 200px; height: 200px; opacity: 0.2" />
                 </div>
                 <div class="mt-4"
-                     style="opacity: 0.25; font-family: Ubuntu, Roboto, sans-serif; font-size: 24px">
-                    I'm Eugene, how may I help?
+                     style="font-family: Ubuntu, Roboto, sans-serif; font-size: 24px">
+                    <span style="opacity: 0.25">I'm </span>
+                    <span style="opacity: 0.45">Eugene</span>
+                    <span style="opacity: 0.25">, how may I help?</span>
                 </div>
             </v-card>
             <v-card v-else
@@ -149,7 +174,7 @@
                                 <v-avatar class="me-2"
                                           size="30">
                                     <v-img alt="Agent"
-                                           src="https://rab-stuff.web.app/sea/avatar.png" />
+                                           :src="userAvatar" />
                                 </v-avatar>
 
                                 <strong>You: </strong>
@@ -272,6 +297,8 @@ const combinedPdfTabs = computed(() => {
         ...pdfTabs.value,
     ];
 });
+
+const userAvatar = ref("https://rab-stuff.web.app/sea/avatar.png");
 
 // TODO: Implement authentication.
 const BASE_URL = "http://localhost:8000/api/";
