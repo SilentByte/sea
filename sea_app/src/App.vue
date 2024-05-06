@@ -95,13 +95,16 @@
                              prepend-icon="mdi-book-open-variant-outline"
                              @click="() => {}" />
 
-                <v-list-item prepend-icon="mdi-calendar-clock-outline"
+                <v-list-item disabled
+                             prepend-icon="mdi-calendar-clock-outline"
                              @click="() => {}" />
 
-                <v-list-item prepend-icon="mdi-tools"
+                <v-list-item disabled
+                             prepend-icon="mdi-tools"
                              @click="() => {}" />
 
-                <v-list-item prepend-icon="mdi-map-marker"
+                <v-list-item disabled
+                             prepend-icon="mdi-map-marker"
                              @click="() => {}" />
             </v-list>
 
@@ -109,13 +112,13 @@
                 <v-list nav
                         density="default">
                     <!-- TODO: Serve as dummy sign out for now. -->
-                    <v-list-item prepend-icon="mdi-cogs"
+                    <v-list-item disabled prepend-icon="mdi-cogs"
                                  @click="onSignOut" />
                 </v-list>
             </template>
         </v-navigation-drawer>
 
-        <v-main>
+        <v-main :key="forcedReload">
             <div v-if="activePdfTab === null"
                  class="pa-2 fill-height overflow-y-auto d-flex align-center justify-center flex-column">
                 <div class="text-center"
@@ -361,6 +364,8 @@ const BASE_URL = "http://localhost:8000/api/";
 
 const apiClient = new SeaApiClient(BASE_URL);
 
+const forcedReload = ref(utils.uuid());
+
 userAuthCompleted.value = apiClient.isAuthenticated;
 
 const combinedPdfTabs = computed(() => {
@@ -501,9 +506,10 @@ function onOpenSource(e: MouseEvent | KeyboardEvent | null, source: IInferenceSo
             source,
         };
 
-        if(!pdfTabs.value.some(t => t.source.file_hash === source.file_hash)) {
-            pdfTabs.value.push(activePdfTab.value);
-        }
+        pdfTabs.value = pdfTabs.value.filter(t => t.source.file_hash === source.file_hash);
+        pdfTabs.value.push(activePdfTab.value);
+
+        forcedReload.value = utils.uuid();
     }
 }
 
