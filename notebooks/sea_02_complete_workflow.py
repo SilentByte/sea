@@ -161,6 +161,7 @@ display_markdown(inference_result.to_markdown())
 # DBTITLE 1,It's Multilingual! 🤩
 from sea.inference import SeaInferenceClient, InferenceInteraction
 
+# Ask the question in German!
 question = r'''
     Der Öldruck im Motor hat plötzlich nachgelassen. Ich verwende den Jabiru 5100 Motor.
     Was könnte das Problem verursacht haben? Kannst du mir eine Liste mit Schritten erstellen,
