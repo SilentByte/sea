@@ -9,6 +9,12 @@
 
 The Central Information Hub that supports engineers in navigating the endless seas of technical documentation. Powered by the Databricks' LLMs and Vector Search.
 
+- Hackathon Submission Page: https://devpost.com/software/smart-engineering-assistant
+- Hackathon Submission Video: https://www.youtube.com/watch?v=GL0kl7lg4Lo
+- GitHub Repository: https://github.com/SilentByte/sea
+ 
+![Usage](docs/sea_animation.gif)
+
 
 ## Inspiration
 
