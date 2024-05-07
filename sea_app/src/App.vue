@@ -518,8 +518,9 @@ function onOpenSource(e: MouseEvent | KeyboardEvent | null, source: IInferenceSo
             source,
         };
 
-        pdfTabs.value = pdfTabs.value.filter(t => t.source.file_hash === source.file_hash);
-        pdfTabs.value.push(activePdfTab.value);
+        if(!pdfTabs.value.some(t => t.source.file_hash === source.file_hash)) {
+            pdfTabs.value.push(activePdfTab.value);
+        }
 
         forcedReload.value = utils.uuid();
     }
