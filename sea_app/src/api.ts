@@ -101,7 +101,7 @@ export class SeaApiClient {
     }
 
     async authenticate(email: string, password: string): Promise<IAuthenticatedUser> {
-        const response = await this.request("POST", "authenticate", {
+        const response = await this.request("POST", "api/authenticate", {
             body: {
                 email,
                 credentials: password,
@@ -116,7 +116,7 @@ export class SeaApiClient {
     }
 
     async inferenceQuery(inference_interactions: IInferenceInteraction[]): Promise<IInferenceResult> {
-        return await this.request("POST", "inference/query", {
+        return await this.request("POST", "api/inference/query", {
             token: this.token,
             body: {
                 inference_interactions,
@@ -125,7 +125,7 @@ export class SeaApiClient {
     }
 
     async searchDocuments(query: string): Promise<IDocumentSearchResult[]> {
-        return await this.request("GET", "search_documents", {
+        return await this.request("GET", "api/search_documents", {
             query: {
                 query,
             },
@@ -133,6 +133,6 @@ export class SeaApiClient {
     }
 
     buildDocumentUrl(hash: string): string {
-        return (new URL(`document/${hash}`, this.baseUrl)).toString();
+        return (new URL(`api/document/${hash}`, this.baseUrl)).toString();
     }
 }

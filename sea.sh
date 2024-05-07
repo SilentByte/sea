@@ -19,6 +19,7 @@ command_help() {
 
   Commands:
     django                  Execute a Django Management Command
+    dev-docker              Build & Run the system in a Docker container
 
 USAGE
 }
@@ -27,7 +28,24 @@ command_django() {
     ${PYTHON} sea_server/manage.py $@
 }
 
+command_dev_docker() {
+  mkdir -p documents/
+
+  docker build -t sea .
+  docker run -it \
+    -p 80:80 \
+    --network host \
+    --memory=1G \
+    --memory-swap=1G \
+    --env-file .env \
+    -e DEBUG=False \
+    -e DOCUMENT=/documents \
+    -v "$PWD/documents":/documents:ro \
+    sea:latest
+}
+
 case "$COMMAND" in
     "django") shift && command_django "$@" ;;
+    "dev-docker") command_dev_docker ;;
     *) command_help ;;
 esac

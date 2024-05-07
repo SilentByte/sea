@@ -139,6 +139,7 @@ SHORT_DATETIME_FORMAT = 'Y-m-d H:i:s'
 DATE_FORMAT = 'Y-m-d'
 TIME_FORMAT = 'H:i:s'
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'public/static')
 STATIC_URL = 'static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),

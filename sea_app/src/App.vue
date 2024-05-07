@@ -275,6 +275,7 @@
                                     <v-text-field hide-details autofocus
                                                   density="compact"
                                                   variant="solo-filled"
+                                                  type="email"
                                                   placeholder="E-Mail"
                                                   v-model="userAuthEmail" />
                                 </v-col>
@@ -286,10 +287,18 @@
                                                   placeholder="Password"
                                                   v-model="userAuthPassword" />
                                 </v-col>
+                                <v-col v-if="userAuthError"
+                                       cols="12">
+                                    <v-alert type="error"
+                                             density="compact">
+                                        Please check that email and password are correct.
+                                    </v-alert>
+                                </v-col>
                                 <v-col cols="12"
                                        class="mt-8">
                                     <v-btn size="large"
                                            block
+                                           :disabled="!userAuthEmail || !userAuthPassword"
                                            :loading="userAuthPending"
                                            @click="onSignIn">
                                         Sign In
@@ -356,11 +365,11 @@ const activePdfTab = ref<IPdfTab | null>(null);
 const userAvatar = ref("https://rab-stuff.web.app/sea/avatar.png");
 const userAuthCompleted = ref(false);
 const userAuthPending = ref(false);
+const userAuthError = ref(false);
 const userAuthEmail = ref("");
 const userAuthPassword = ref("");
 
-// TODO: Move into build configuration.
-const BASE_URL = "http://localhost:8000/api/";
+const BASE_URL = import.meta.env.VITE_BASE_URL || location.href;
 
 const apiClient = new SeaApiClient(BASE_URL);
 
@@ -427,8 +436,11 @@ function smartSearchFilter(value: string, query: string) {
 async function onSignIn() {
     try {
         userAuthPending.value = true;
+        userAuthError.value = false;
         await apiClient.authenticate(userAuthEmail.value, userAuthPassword.value);
         userAuthCompleted.value = apiClient.isAuthenticated;
+    } catch {
+        userAuthError.value = true;
     } finally {
         userAuthPending.value = false;
     }

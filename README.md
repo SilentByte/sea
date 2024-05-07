@@ -112,3 +112,67 @@ There are several features we would like to spend more time on implementing:
 * Make Eugene aware of the document that is currently being displayed. This would allow users to ask the AI to summarize a document that is currently being viewed.
 * Allow users to save sessions and continue later.
 * Improve the quality of responses in certain edge cases.
+
+
+# Running the System
+
+## Setting up Databricks
+
+The easiest way to get started with the Databricks part is to work through the notebook `/notebooks/sea_02_complete_workflow.py`.  You can import this repository into your Databricks Workspace and open the notebook directly.
+
+Once you have completed the steps your documents should be ingested, indexed, and the Vector Search Index should be ready for queries.
+
+
+## Getting Server & App Running
+
+You may decide to run the system directly from your IDE of choice if you want to start developing. However, the easiest way to get the system up and running is to use the existing Docker configuration.
+
+**Before we get started, you will need access to a PostgreSQL database.**
+
+First, create an `.env` file in the root of this repository first and set the correct values:
+
+```dotenv
+LOG_LEVEL=DEBUG
+
+DATABRICKS_HOST=https://WORKSPACE.databricks.com
+DATABRICKS_TOKEN=YOUR_API_TOKEN
+
+DB_HOST=
+DB_PORT=5432
+DB_NAME=sea
+DB_USER=sea
+DB_PASSWORD=
+
+SECRET_KEY=DJANGO_SECRET_KEY
+DOCUMENT_DIR=PATH_TO_YOUR_DOCUMENTS
+
+ADMIN_USER_NAME=admin
+ADMIN_USER_EMAIL=admin@example.com
+ADMIN_USER_PASSWORD=sea12345678
+```
+
+Create a folder for the documents:
+
+```sh
+mkdir -p documents
+```
+
+Copy your PDF documents you would want to index into the folder you have just created and then simply run the following Docker commands:
+
+```sh
+docker build -t sea .
+docker run -it \
+           -p 80:80 \
+           --network host \
+           --memory=1G \
+           --memory-swap=1G \
+           --env-file .env \
+           -e DEBUG=False \
+           -e DOCUMENT=/documents \
+           -v "$PWD/documents":/documents:ro \
+           sea:latest
+```
+
+Assuming your `.env` file is correct and your PostgreSQL database is accessible with the provided credentials, the Docker container should now be running and indexing your documents into the database and set up the admin user you have specified.
+
+Access the system at http://localhost/. The Django back-end is accessible at http://localhost/records.

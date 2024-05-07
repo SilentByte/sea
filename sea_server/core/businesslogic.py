@@ -58,6 +58,15 @@ def verify_credentials(user: UserAccount, raw_credentials: str) -> bool:
     )
 
 
+def create_user_account(display_name: str, email: str, raw_credentials: str) -> UserAccount:
+    return UserAccount.objects.create(
+        email=email,
+        display_name=display_name,
+        hashed_credentials=auth.hash_raw_credentials(raw_credentials),
+        is_active=True
+    )
+
+
 def create_auth_token(
         user: UserAccount,
         device_name: str | None = None,
@@ -120,7 +129,11 @@ def extract_document_search_tags(file_name: str) -> list[str]:
 
 
 def synchronize_documents() -> None:
-    document_file_names = glob(os.path.join(settings.DOCUMENT_DIR, '**/*.pdf'), recursive=True)
+    document_path_glob = os.path.join(settings.DOCUMENT_DIR, '**/*.pdf')
+
+    log.info('Synchronizing documents at %s', document_path_glob)
+
+    document_file_names = glob(document_path_glob, recursive=True)
 
     with transaction.atomic():
         for i, file_name in enumerate(sorted(document_file_names), 1):
